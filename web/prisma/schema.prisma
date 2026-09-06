@@ -1,0 +1,98 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../lib/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum MeetingStatus {
+  WAITING_FOR_MENTOR_TIMES
+  WAITING_FOR_MENTEE_SELECTION
+  SCHEDULED
+  ATTENDANCE_CONFIRMED
+  COMPLETED
+  NOT_COMPLETED
+  CANCELLED
+}
+
+model User {
+  id        String   @id @db.Uuid
+  email     String   @unique
+  username  String   @unique
+  isMentor  Boolean  @default(false)
+  isAdmin   Boolean  @default(false)
+  createdAt DateTime @default(now()) @db.Timestamptz(3)
+  updatedAt DateTime @updatedAt @db.Timestamptz(3)
+
+  mentorProfile   MentorProfile?
+  menteeMeetings  Meeting[]      @relation("MeetingMentee")
+  mentorMeetings  Meeting[]      @relation("MeetingMentor")
+  feedbackEntries Feedback[]
+}
+
+model MentorProfile {
+  userId                 String   @id @db.Uuid
+  background             String
+  topics                 String[]
+  maxConcurrentMeetings  Int
+  meetingDurationMinutes Int
+  isActive               Boolean  @default(true)
+  createdAt              DateTime @default(now()) @db.Timestamptz(3)
+  updatedAt              DateTime @updatedAt @db.Timestamptz(3)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Meeting {
+  id                    String        @id @default(uuid()) @db.Uuid
+  menteeId              String        @db.Uuid
+  mentorId              String        @db.Uuid
+  status                MeetingStatus @default(WAITING_FOR_MENTOR_TIMES)
+  scheduledAt           DateTime?     @db.Timestamptz(3)
+  hasRequestedMoreTimes Boolean       @default(false)
+  hasRescheduled        Boolean       @default(false)
+  createdAt             DateTime      @default(now()) @db.Timestamptz(3)
+  updatedAt             DateTime      @updatedAt @db.Timestamptz(3)
+
+  mentee   User          @relation("MeetingMentee", fields: [menteeId], references: [id], onDelete: Restrict)
+  mentor   User          @relation("MeetingMentor", fields: [mentorId], references: [id], onDelete: Restrict)
+  slots    MeetingSlot[]
+  feedback Feedback[]
+
+  @@index([menteeId, status])
+  @@index([mentorId, status])
+  @@index([status, scheduledAt])
+}
+
+model MeetingSlot {
+  id         String   @id @default(uuid()) @db.Uuid
+  meetingId  String   @db.Uuid
+  startsAt   DateTime @db.Timestamptz(3)
+  endsAt     DateTime @db.Timestamptz(3)
+  isSelected Boolean  @default(false)
+  createdAt  DateTime @default(now()) @db.Timestamptz(3)
+  updatedAt  DateTime @updatedAt @db.Timestamptz(3)
+
+  meeting Meeting @relation(fields: [meetingId], references: [id], onDelete: Cascade)
+
+  @@unique([meetingId, startsAt])
+  @@index([meetingId, isSelected])
+}
+
+model Feedback {
+  id        String   @id @default(uuid()) @db.Uuid
+  meetingId String   @db.Uuid
+  authorId  String   @db.Uuid
+  rating    Int      @db.SmallInt
+  comment   String?
+  createdAt DateTime @default(now()) @db.Timestamptz(3)
+  updatedAt DateTime @updatedAt @db.Timestamptz(3)
+
+  meeting Meeting @relation(fields: [meetingId], references: [id], onDelete: Cascade)
+  author  User    @relation(fields: [authorId], references: [id], onDelete: Restrict)
+
+  @@unique([meetingId, authorId])
+  @@index([authorId])
+}
