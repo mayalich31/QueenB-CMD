@@ -2,6 +2,16 @@ import { z } from "zod";
 
 import { MeetingStatus } from "../generated/prisma/enums";
 
+const meetingSlotSchema = z
+  .object({
+    startsAt: z.coerce.date(),
+    endsAt: z.coerce.date(),
+  })
+  .refine(({ startsAt, endsAt }) => endsAt > startsAt, {
+    message: "A meeting slot must end after it starts.",
+    path: ["endsAt"],
+  });
+
 export const meetingCreateSchema = z
   .object({
     menteeId: z.uuid({ error: "Mentee ID must be a valid UUID." }),
@@ -17,7 +27,23 @@ export const meetingStatusUpdateSchema = z.object({
   status: z.enum(MeetingStatus),
 });
 
+export const proposeMeetingSlotsSchema = z.object({
+  meetingId: z.uuid({ error: "Meeting ID must be a valid UUID." }),
+  slots: z.array(meetingSlotSchema).min(1).max(20),
+});
+
+export const selectMeetingSlotSchema = z.object({
+  meetingId: z.uuid({ error: "Meeting ID must be a valid UUID." }),
+  slotId: z.uuid({ error: "Slot ID must be a valid UUID." }),
+});
+
 export type MeetingCreateInput = z.infer<typeof meetingCreateSchema>;
 export type MeetingStatusUpdateInput = z.infer<
   typeof meetingStatusUpdateSchema
+>;
+export type ProposeMeetingSlotsInput = z.infer<
+  typeof proposeMeetingSlotsSchema
+>;
+export type SelectMeetingSlotInput = z.infer<
+  typeof selectMeetingSlotSchema
 >;
