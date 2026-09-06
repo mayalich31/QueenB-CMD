@@ -6,12 +6,19 @@ import {
 export type MeetingState = {
   status: MeetingStatusValue;
   scheduledAt: Date | null;
+  completedAt: Date | null;
+  mentorAttendanceConfirmedAt: Date | null;
+  menteeAttendanceConfirmedAt: Date | null;
   hasRequestedMoreTimes: boolean;
   hasRescheduled: boolean;
 };
 
 export type MeetingTransitionPatch = {
   status: MeetingStatusValue;
+  scheduledAt?: Date | null;
+  completedAt?: Date | null;
+  mentorAttendanceConfirmedAt?: Date | null;
+  menteeAttendanceConfirmedAt?: Date | null;
   hasRequestedMoreTimes?: boolean;
   hasRescheduled?: boolean;
 };
@@ -40,8 +47,14 @@ const allowedTransitions: Record<
     MeetingStatus.ATTENDANCE_CONFIRMED,
     MeetingStatus.CANCELLED,
   ],
-  [MeetingStatus.ATTENDANCE_CONFIRMED]: [MeetingStatus.COMPLETED],
-  [MeetingStatus.COMPLETED]: [],
+  [MeetingStatus.ATTENDANCE_CONFIRMED]: [
+    MeetingStatus.COMPLETED,
+    MeetingStatus.CANCELLED,
+  ],
+  [MeetingStatus.COMPLETED]: [
+    MeetingStatus.WAITING_FOR_MENTOR_TIMES,
+    MeetingStatus.NOT_COMPLETED,
+  ],
   [MeetingStatus.NOT_COMPLETED]: [],
   [MeetingStatus.CANCELLED]: [],
 };
@@ -69,7 +82,33 @@ export function getMeetingTransitionPatch(
     };
   }
 
+  if (
+    meeting.status === MeetingStatus.COMPLETED &&
+    target === MeetingStatus.WAITING_FOR_MENTOR_TIMES
+  ) {
+    if (meeting.hasRescheduled) {
+      throw new InvalidMeetingTransitionError(meeting.status, target);
+    }
+
+    return {
+      status: target,
+      scheduledAt: null,
+      completedAt: null,
+      mentorAttendanceConfirmedAt: null,
+      menteeAttendanceConfirmedAt: null,
+      hasRescheduled: true,
+    };
+  }
+
   if (target === MeetingStatus.SCHEDULED && !meeting.scheduledAt) {
+    throw new InvalidMeetingTransitionError(meeting.status, target);
+  }
+
+  if (
+    target === MeetingStatus.ATTENDANCE_CONFIRMED &&
+    (!meeting.mentorAttendanceConfirmedAt ||
+      !meeting.menteeAttendanceConfirmedAt)
+  ) {
     throw new InvalidMeetingTransitionError(meeting.status, target);
   }
 
@@ -78,6 +117,18 @@ export function getMeetingTransitionPatch(
     (!meeting.scheduledAt || meeting.scheduledAt > now)
   ) {
     throw new InvalidMeetingTransitionError(meeting.status, target);
+  }
+
+  if (target === MeetingStatus.COMPLETED) {
+    return { status: target, completedAt: now };
+  }
+
+  if (target === MeetingStatus.CANCELLED) {
+    return {
+      status: target,
+      mentorAttendanceConfirmedAt: null,
+      menteeAttendanceConfirmedAt: null,
+    };
   }
 
   return { status: target };

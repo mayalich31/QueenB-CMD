@@ -19,7 +19,7 @@ export default async function MentorDashboardLayout({
   const user = await findUserById(userId);
 
   if (!user?.isMentor) {
-    redirect("/dashboard/mentee");
+    redirect("/dashboard/profile");
   }
 
   return children;

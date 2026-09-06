@@ -9,6 +9,9 @@ export type DatabaseClient = Prisma.TransactionClient | typeof prisma;
 export type MeetingStatePatch = {
   status: MeetingStatus;
   scheduledAt?: Date | null;
+  completedAt?: Date | null;
+  mentorAttendanceConfirmedAt?: Date | null;
+  menteeAttendanceConfirmedAt?: Date | null;
   hasRequestedMoreTimes?: boolean;
   hasRescheduled?: boolean;
 };
@@ -68,6 +71,7 @@ export function findMeetingById(
     include: {
       slots: { orderBy: { startsAt: "asc" } },
       feedback: true,
+      verifications: { orderBy: { cycle: "asc" } },
     },
   });
 }
@@ -90,6 +94,7 @@ export function listMenteeMeetings(menteeId: string) {
       mentor: true,
       slots: { orderBy: { startsAt: "asc" } },
       feedback: true,
+      verifications: { orderBy: { cycle: "asc" } },
     },
     orderBy: { updatedAt: "desc" },
   });
@@ -102,18 +107,74 @@ export function listMentorMeetings(mentorId: string) {
       mentee: true,
       slots: { orderBy: { startsAt: "asc" } },
       feedback: true,
+      verifications: { orderBy: { cycle: "asc" } },
     },
     orderBy: { updatedAt: "desc" },
   });
 }
 
-export function completeEligibleMeetings(now = new Date()) {
-  return prisma.meeting.updateMany({
+export function findEligibleMeetingsForCompletion(
+  now = new Date(),
+  database: DatabaseClient = prisma,
+) {
+  return database.meeting.findMany({
     where: {
       status: MeetingStatus.ATTENDANCE_CONFIRMED,
       scheduledAt: { lte: now },
     },
-    data: { status: MeetingStatus.COMPLETED },
+  });
+}
+
+export function completeEligibleMeetings(
+  now = new Date(),
+  database: DatabaseClient = prisma,
+) {
+  return database.meeting.updateManyAndReturn({
+    where: {
+      status: MeetingStatus.ATTENDANCE_CONFIRMED,
+      scheduledAt: { lte: now },
+    },
+    data: {
+      status: MeetingStatus.COMPLETED,
+      completedAt: now,
+    },
+  });
+}
+
+export function listCompletedMeetingsAwaitingFeedback(
+  database: DatabaseClient = prisma,
+) {
+  return database.meeting.findMany({
+    where: {
+      status: MeetingStatus.COMPLETED,
+      verifications: {
+        some: {
+          verificationResolvedAt: { not: null },
+          mentorDidHappen: true,
+          menteeDidHappen: true,
+        },
+      },
+    },
+    include: {
+      feedback: true,
+      verifications: { orderBy: { cycle: "asc" } },
+    },
+  });
+}
+
+export function listCompletedMeetingsForUser(
+  userId: string,
+  database: DatabaseClient = prisma,
+) {
+  return database.meeting.findMany({
+    where: {
+      status: MeetingStatus.COMPLETED,
+      OR: [{ menteeId: userId }, { mentorId: userId }],
+    },
+    include: {
+      feedback: true,
+      verifications: { orderBy: { cycle: "asc" } },
+    },
   });
 }
 
@@ -127,6 +188,7 @@ export function listMeetingsForUser(userId: string) {
       mentor: true,
       slots: { orderBy: { startsAt: "asc" } },
       feedback: true,
+      verifications: { orderBy: { cycle: "asc" } },
     },
     orderBy: { updatedAt: "desc" },
   });
@@ -183,4 +245,56 @@ export function clearMeetingSlots(
   database: DatabaseClient = prisma,
 ) {
   return database.meetingSlot.deleteMany({ where: { meetingId } });
+}
+
+export async function lockMeetingForUpdate(
+  meetingId: string,
+  database: DatabaseClient,
+) {
+  await database.$queryRaw`
+    SELECT "id"
+    FROM "Meeting"
+    WHERE "id" = ${meetingId}::uuid
+    FOR UPDATE
+  `;
+}
+
+export function findMeetingVerification(
+  meetingId: string,
+  cycle: number,
+  database: DatabaseClient = prisma,
+) {
+  return database.meetingVerification.findUnique({
+    where: { meetingId_cycle: { meetingId, cycle } },
+  });
+}
+
+type MeetingVerificationCreateData = {
+  meetingId: string;
+  cycle: number;
+  mentorDidHappen?: boolean;
+  menteeDidHappen?: boolean;
+};
+
+export function createMeetingVerification(
+  data: MeetingVerificationCreateData,
+  database: DatabaseClient = prisma,
+) {
+  return database.meetingVerification.create({ data });
+}
+
+type MeetingVerificationPatch = {
+  mentorDidHappen?: boolean;
+  menteeDidHappen?: boolean;
+  mentorWantsReschedule?: boolean;
+  menteeWantsReschedule?: boolean;
+  verificationResolvedAt?: Date;
+};
+
+export function updateMeetingVerification(
+  id: string,
+  data: MeetingVerificationPatch,
+  database: DatabaseClient = prisma,
+) {
+  return database.meetingVerification.update({ where: { id }, data });
 }

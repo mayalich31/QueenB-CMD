@@ -1,62 +1,35 @@
-import { redirect } from "next/navigation";
-
+import { saveMentorProfileAction } from "@/app/dashboard/profile/actions";
 import {
   MENTORING_TOPIC_LABELS,
   MENTORING_TOPIC_VALUES,
 } from "@/lib/constants/mentoring-topics";
-import { findMentorProfile } from "@/lib/dal/mentor-profiles";
-import { createClient } from "@/lib/supabase/server";
 
-import { saveMentorProfileAction } from "./actions";
-
-type MentorSettingsPageProps = {
-  searchParams: Promise<{
-    error?: string;
-    message?: string;
-  }>;
+type MentorProfileValues = {
+  background: string;
+  topics: string[];
+  maxConcurrentMeetings: number;
+  meetingDurationMinutes: number;
+  isActive: boolean;
 };
 
-export default async function MentorSettingsPage({
-  searchParams,
-}: MentorSettingsPageProps) {
-  const supabase = await createClient();
-  const { data } = await supabase.auth.getClaims();
-  const userId = data?.claims?.sub;
+type MentorProfileFormProps = {
+  profile: MentorProfileValues | null;
+};
 
-  if (!userId) {
-    redirect("/login");
-  }
-
-  const [profile, status] = await Promise.all([
-    findMentorProfile(userId),
-    searchParams,
-  ]);
-
+export function MentorProfileForm({ profile }: MentorProfileFormProps) {
   return (
-    <section className="mx-auto max-w-3xl">
-      <p className="text-sm font-medium text-amber-700">Account settings</p>
-      <h1 className="mt-2 text-3xl font-semibold">
-        {profile ? "Mentor profile" : "Become a mentor"}
-      </h1>
-      <p className="mt-3 text-zinc-600">
-        Set the topics you advise on and the meeting capacity that works for
-        you.
+    <section className="mt-12 scroll-mt-24" id="mentor">
+      <p className="text-sm font-medium text-amber-700">Mentor profile</p>
+      <h2 className="mt-2 text-2xl font-semibold">
+        {profile ? "Manage your mentor profile" : "Become a mentor"}
+      </h2>
+      <p className="mt-2 text-zinc-600">
+        Set your advisory topics, meeting length, and current capacity.
       </p>
-
-      {status.error ? (
-        <p className="mt-6 rounded-lg bg-red-50 p-3 text-sm text-red-700">
-          {status.error}
-        </p>
-      ) : null}
-      {status.message ? (
-        <p className="mt-6 rounded-lg bg-emerald-50 p-3 text-sm text-emerald-700">
-          {status.message}
-        </p>
-      ) : null}
 
       <form
         action={saveMentorProfileAction}
-        className="mt-8 space-y-8 rounded-2xl border border-zinc-200 bg-white p-6"
+        className="mt-6 space-y-8 rounded-2xl border border-zinc-200 bg-white p-6"
       >
         <label className="block text-sm font-medium text-zinc-800">
           Professional background

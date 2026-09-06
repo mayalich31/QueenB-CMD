@@ -1,12 +1,17 @@
 import { createFeedback as createFeedbackRecord } from "@/lib/dal/feedback";
-import { findMeetingById } from "@/lib/dal/meetings";
-import { MeetingStatus } from "@/lib/generated/prisma/enums";
+import {
+  findMeetingById,
+  lockMeetingForUpdate,
+} from "@/lib/dal/meetings";
 import {
   feedbackCreateSchema,
   feedbackFormSchema,
 } from "@/lib/validations/feedback";
 
+import { assertMeetingParticipant } from "./meeting-authorization";
+import { isOutcomeVerified } from "./meeting-verification";
 import { MeetingNotFoundError } from "./meetings";
+import { runSerializableTransaction } from "./transaction";
 
 export class FeedbackNotAllowedError extends Error {
   constructor() {
@@ -21,18 +26,21 @@ export async function createFeedbackForUser(
 ) {
   const formData = feedbackFormSchema.parse(input);
   const data = feedbackCreateSchema.parse({ ...formData, authorId });
-  const meeting = await findMeetingById(data.meetingId);
 
-  if (!meeting) {
-    throw new MeetingNotFoundError();
-  }
+  return runSerializableTransaction(async (transaction) => {
+    await lockMeetingForUpdate(data.meetingId, transaction);
+    const meeting = await findMeetingById(data.meetingId, transaction);
 
-  const isParticipant =
-    data.authorId === meeting.menteeId || data.authorId === meeting.mentorId;
+    if (!meeting) {
+      throw new MeetingNotFoundError();
+    }
 
-  if (meeting.status !== MeetingStatus.COMPLETED || !isParticipant) {
-    throw new FeedbackNotAllowedError();
-  }
+    assertMeetingParticipant(meeting, data.authorId);
 
-  return createFeedbackRecord(data);
+    if (!isOutcomeVerified(meeting)) {
+      throw new FeedbackNotAllowedError();
+    }
+
+    return createFeedbackRecord(data, transaction);
+  });
 }

@@ -2,7 +2,7 @@ import { submitFeedbackAction } from "@/app/dashboard/actions";
 
 type FeedbackFormProps = {
   meetingId: string;
-  workspace: "mentee" | "mentor";
+  workspace: "profile" | "mentor";
 };
 
 export function FeedbackForm({

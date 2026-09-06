@@ -1,5 +1,26 @@
-# QueenB - Full Stack Task Management Application
-A template for building a full-stack web application using modern technologies - fork this repository to get started quickly.
+# QueenB Repository
+
+## Queens Match
+
+The active Queens Match MVP is the Next.js application in [`web/`](web/).
+Its setup, database migration, test, and deployment instructions are in
+[`web/README.md`](web/README.md).
+
+From the repository root:
+
+```bash
+npm run web
+npm run web:test
+npm run web:typecheck
+npm run web:build
+```
+
+The original CRA/Express template remains available in `client/` and `server/`
+through the legacy root scripts documented below.
+
+## Legacy CRA/Express template
+
+A template for building a full-stack web application using modern technologies.
 
 Built with Node.js, Express, React, and Material UI.
 

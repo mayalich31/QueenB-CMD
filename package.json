@@ -19,6 +19,7 @@
     "web:lint": "cd web && npm run lint",
     "web:test": "cd web && npm test",
     "web:typecheck": "cd web && npm run typecheck",
+    "web:check": "cd web && npm run check",
     "build": "cd client && npm run build",
     "start": "cd server && npm start"
   },

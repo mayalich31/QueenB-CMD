@@ -5,7 +5,8 @@ import { redirect } from "next/navigation";
 
 import { findMentorProfile } from "@/lib/dal/mentor-profiles";
 import {
-  confirmMeetingAttendance,
+  cancelMeetingForParticipant,
+  confirmMeetingAttendanceForParticipant,
   MeetingRequestError,
   proposeMeetingSlotsForMentor,
   rejectMeetingRequest,
@@ -44,8 +45,8 @@ export async function rejectMeetingRequestAction(formData: FormData) {
   }
 
   revalidatePath("/dashboard/mentor");
-  revalidatePath("/dashboard/mentee");
-  revalidatePath("/dashboard/mentee/directory");
+  revalidatePath("/dashboard/profile");
+  revalidatePath("/dashboard");
 
   const searchParams = new URLSearchParams({
     message: "Meeting request rejected.",
@@ -99,7 +100,7 @@ export async function proposeMeetingSlotsAction(formData: FormData) {
   }
 
   revalidatePath("/dashboard/mentor");
-  revalidatePath("/dashboard/mentee");
+  revalidatePath("/dashboard/profile");
   redirect("/dashboard/mentor?message=Time+options+sent.");
 }
 
@@ -118,12 +119,38 @@ export async function confirmAttendanceAction(formData: FormData) {
   }
 
   try {
-    await confirmMeetingAttendance(mentorId, meetingId);
+    await confirmMeetingAttendanceForParticipant(mentorId, meetingId);
   } catch {
     redirect("/dashboard/mentor?error=Attendance+could+not+be+confirmed.");
   }
 
   revalidatePath("/dashboard/mentor");
-  revalidatePath("/dashboard/mentee");
-  redirect("/dashboard/mentor?message=Attendance+confirmed.");
+  revalidatePath("/dashboard/profile");
+  redirect("/dashboard/mentor?message=Your+confirmation+was+saved.");
+}
+
+export async function cancelMeetingAction(formData: FormData) {
+  const supabase = await createClient();
+  const { data } = await supabase.auth.getClaims();
+  const mentorId = data?.claims?.sub;
+  const meetingId = formData.get("meetingId");
+
+  if (!mentorId) {
+    redirect("/login");
+  }
+
+  if (typeof meetingId !== "string") {
+    redirect("/dashboard/mentor?error=Invalid+meeting.");
+  }
+
+  try {
+    await cancelMeetingForParticipant(mentorId, meetingId);
+  } catch {
+    redirect("/dashboard/mentor?error=Meeting+could+not+be+cancelled.");
+  }
+
+  revalidatePath("/dashboard");
+  revalidatePath("/dashboard/profile");
+  revalidatePath("/dashboard/mentor");
+  redirect("/dashboard/mentor?message=Meeting+cancelled.");
 }

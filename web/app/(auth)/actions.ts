@@ -44,7 +44,7 @@ export async function login(formData: FormData) {
   }
 
   revalidatePath("/", "layout");
-  redirect("/dashboard/mentee");
+  redirect("/dashboard");
 }
 
 export async function register(formData: FormData) {
@@ -77,7 +77,7 @@ export async function register(formData: FormData) {
     options: {
       data: { username: result.data.username },
       ...(origin
-        ? { emailRedirectTo: `${origin}/auth/callback?next=/dashboard/mentee` }
+        ? { emailRedirectTo: `${origin}/auth/callback?next=/dashboard` }
         : {}),
     },
   });
@@ -126,7 +126,7 @@ export async function register(formData: FormData) {
   }
 
   revalidatePath("/", "layout");
-  redirect("/dashboard/mentee");
+  redirect("/dashboard");
 }
 
 export async function logout() {

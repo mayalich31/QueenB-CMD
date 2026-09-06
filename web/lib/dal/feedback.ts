@@ -1,8 +1,13 @@
 import { prisma } from "@/lib/prisma";
 import type { FeedbackCreateInput } from "@/lib/validations/feedback";
 
-export function createFeedback(data: FeedbackCreateInput) {
-  return prisma.feedback.create({ data });
+import type { DatabaseClient } from "./meetings";
+
+export function createFeedback(
+  data: FeedbackCreateInput,
+  database: DatabaseClient = prisma,
+) {
+  return database.feedback.create({ data });
 }
 
 export function listMeetingFeedback(meetingId: string) {

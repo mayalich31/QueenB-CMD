@@ -6,7 +6,7 @@ import { createClient } from "@/lib/supabase/server";
 function safeNextPath(value: string | null) {
   return value?.startsWith("/") && !value.startsWith("//")
     ? value
-    : "/dashboard/mentee";
+    : "/dashboard";
 }
 
 export async function GET(request: NextRequest) {

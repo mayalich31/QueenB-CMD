@@ -17,6 +17,18 @@ enum MeetingStatus {
   CANCELLED
 }
 
+enum NotificationType {
+  MEETING_REQUESTED
+  MEETING_SLOTS_PROPOSED
+  MEETING_SCHEDULED
+  MEETING_ATTENDANCE_CONFIRMED
+  MEETING_CANCELLED
+  MEETING_COMPLETED
+  MEETING_VERIFICATION_REQUIRED
+  MEETING_RESCHEDULED
+  FEEDBACK_REMINDER
+}
+
 model User {
   id        String   @id @db.Uuid
   email     String   @unique
@@ -30,6 +42,7 @@ model User {
   menteeMeetings  Meeting[]      @relation("MeetingMentee")
   mentorMeetings  Meeting[]      @relation("MeetingMentor")
   feedbackEntries Feedback[]
+  notifications   Notification[]
 }
 
 model MentorProfile {
@@ -46,24 +59,30 @@ model MentorProfile {
 }
 
 model Meeting {
-  id                    String        @id @default(uuid()) @db.Uuid
-  menteeId              String        @db.Uuid
-  mentorId              String        @db.Uuid
-  status                MeetingStatus @default(WAITING_FOR_MENTOR_TIMES)
-  scheduledAt           DateTime?     @db.Timestamptz(3)
-  hasRequestedMoreTimes Boolean       @default(false)
-  hasRescheduled        Boolean       @default(false)
-  createdAt             DateTime      @default(now()) @db.Timestamptz(3)
-  updatedAt             DateTime      @updatedAt @db.Timestamptz(3)
+  id                          String        @id @default(uuid()) @db.Uuid
+  menteeId                    String        @db.Uuid
+  mentorId                    String        @db.Uuid
+  status                      MeetingStatus @default(WAITING_FOR_MENTOR_TIMES)
+  scheduledAt                 DateTime?     @db.Timestamptz(3)
+  completedAt                 DateTime?     @db.Timestamptz(3)
+  mentorAttendanceConfirmedAt DateTime?     @db.Timestamptz(3)
+  menteeAttendanceConfirmedAt DateTime?     @db.Timestamptz(3)
+  hasRequestedMoreTimes       Boolean       @default(false)
+  hasRescheduled              Boolean       @default(false)
+  createdAt                   DateTime      @default(now()) @db.Timestamptz(3)
+  updatedAt                   DateTime      @updatedAt @db.Timestamptz(3)
 
-  mentee   User          @relation("MeetingMentee", fields: [menteeId], references: [id], onDelete: Restrict)
-  mentor   User          @relation("MeetingMentor", fields: [mentorId], references: [id], onDelete: Restrict)
-  slots    MeetingSlot[]
-  feedback Feedback[]
+  mentee        User                  @relation("MeetingMentee", fields: [menteeId], references: [id], onDelete: Restrict)
+  mentor        User                  @relation("MeetingMentor", fields: [mentorId], references: [id], onDelete: Restrict)
+  slots         MeetingSlot[]
+  feedback      Feedback[]
+  verifications MeetingVerification[]
+  notifications Notification[]
 
   @@index([menteeId, status])
   @@index([mentorId, status])
   @@index([status, scheduledAt])
+  @@index([status, completedAt])
 }
 
 model MeetingSlot {
@@ -95,4 +114,39 @@ model Feedback {
 
   @@unique([meetingId, authorId])
   @@index([authorId])
+}
+
+model MeetingVerification {
+  id                     String    @id @default(uuid()) @db.Uuid
+  meetingId              String    @db.Uuid
+  cycle                  Int       @db.SmallInt
+  mentorDidHappen        Boolean?
+  menteeDidHappen        Boolean?
+  mentorWantsReschedule  Boolean?
+  menteeWantsReschedule  Boolean?
+  verificationResolvedAt DateTime? @db.Timestamptz(3)
+  createdAt              DateTime  @default(now()) @db.Timestamptz(3)
+  updatedAt              DateTime  @updatedAt @db.Timestamptz(3)
+
+  meeting Meeting @relation(fields: [meetingId], references: [id], onDelete: Cascade)
+
+  @@unique([meetingId, cycle])
+  @@index([verificationResolvedAt])
+}
+
+model Notification {
+  id        String           @id @default(uuid()) @db.Uuid
+  userId    String           @db.Uuid
+  meetingId String?          @db.Uuid
+  type      NotificationType
+  href      String?
+  readAt    DateTime?        @db.Timestamptz(3)
+  dedupeKey String           @unique
+  createdAt DateTime         @default(now()) @db.Timestamptz(3)
+
+  user    User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  meeting Meeting? @relation(fields: [meetingId], references: [id], onDelete: Cascade)
+
+  @@index([userId, readAt, createdAt])
+  @@index([meetingId])
 }

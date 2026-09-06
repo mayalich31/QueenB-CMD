@@ -27,6 +27,26 @@ export const meetingStatusUpdateSchema = z.object({
   status: z.enum(MeetingStatus),
 });
 
+export const meetingParticipantActionSchema = z.object({
+  meetingId: z.uuid({ error: "Meeting ID must be a valid UUID." }),
+});
+
+export const meetingVerificationAnswerSchema = z.object({
+  meetingId: z.uuid({ error: "Meeting ID must be a valid UUID." }),
+  didHappen: z.boolean(),
+});
+
+export const meetingRescheduleIntentSchema = z.object({
+  meetingId: z.uuid({ error: "Meeting ID must be a valid UUID." }),
+  wantsReschedule: z.boolean(),
+});
+
+export const notificationActionSchema = z.object({
+  notificationId: z.uuid({
+    error: "Notification ID must be a valid UUID.",
+  }),
+});
+
 export const proposeMeetingSlotsSchema = z.object({
   meetingId: z.uuid({ error: "Meeting ID must be a valid UUID." }),
   slots: z.array(meetingSlotSchema).min(1).max(20),
@@ -40,6 +60,15 @@ export const selectMeetingSlotSchema = z.object({
 export type MeetingCreateInput = z.infer<typeof meetingCreateSchema>;
 export type MeetingStatusUpdateInput = z.infer<
   typeof meetingStatusUpdateSchema
+>;
+export type MeetingVerificationAnswerInput = z.infer<
+  typeof meetingVerificationAnswerSchema
+>;
+export type MeetingRescheduleIntentInput = z.infer<
+  typeof meetingRescheduleIntentSchema
+>;
+export type NotificationActionInput = z.infer<
+  typeof notificationActionSchema
 >;
 export type ProposeMeetingSlotsInput = z.infer<
   typeof proposeMeetingSlotsSchema

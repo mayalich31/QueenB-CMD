@@ -8,5 +8,5 @@ export default async function Home() {
   const supabase = await createClient();
   const { data } = await supabase.auth.getClaims();
 
-  redirect(data?.claims ? "/dashboard/mentee" : "/login");
+  redirect(data?.claims ? "/dashboard" : "/login");
 }

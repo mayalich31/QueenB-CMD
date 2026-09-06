@@ -1,8 +1,13 @@
 import { redirect } from "next/navigation";
 
 import { FeedbackForm } from "@/components/meetings/feedback-form";
+import { MeetingVerificationPanel } from "@/components/meetings/meeting-verification-panel";
 import { SlotProposalForm } from "@/components/meetings/slot-proposal-form";
-import { MEETING_STATUS_LABELS } from "@/lib/constants/meeting-statuses";
+import { canSubmitFeedback } from "@/lib/services/meeting-verification";
+import {
+  ACTIVE_MEETING_STATUSES,
+  getMeetingStatusLabel,
+} from "@/lib/constants/meeting-statuses";
 import { MeetingStatus } from "@/lib/generated/prisma/enums";
 import {
   listMeetingsForMentor,
@@ -11,9 +16,12 @@ import {
 import { createClient } from "@/lib/supabase/server";
 
 import {
+  cancelMeetingAction,
   confirmAttendanceAction,
   rejectMeetingRequestAction,
 } from "./actions";
+
+const activeStatuses = new Set<MeetingStatus>(ACTIVE_MEETING_STATUSES);
 
 type MentorDashboardPageProps = {
   searchParams: Promise<{
@@ -100,10 +108,6 @@ export default async function MentorDashboardPage({
         {managedMeetings.length > 0 ? (
           <div className="mt-4 space-y-4">
             {managedMeetings.map((meeting) => {
-              const hasFeedback = meeting.feedback.some(
-                (feedback) => feedback.authorId === mentorId,
-              );
-
               return (
                 <article
                   className="rounded-2xl border border-zinc-200 bg-white p-5"
@@ -121,29 +125,83 @@ export default async function MentorDashboardPage({
                       </p>
                     </div>
                     <span className="rounded-full bg-amber-50 px-3 py-1 text-sm text-amber-800">
-                      {MEETING_STATUS_LABELS[meeting.status]}
+                      {getMeetingStatusLabel(meeting)}
                     </span>
                   </div>
 
                   {meeting.status === MeetingStatus.SCHEDULED ? (
-                    <form action={confirmAttendanceAction} className="mt-4">
+                    <div className="mt-4 border-t border-zinc-100 pt-4">
+                      <div className="grid gap-2 text-sm text-zinc-600 sm:grid-cols-2">
+                        <p>
+                          Your confirmation:{" "}
+                          {meeting.mentorAttendanceConfirmedAt
+                            ? "Confirmed"
+                            : "Pending"}
+                        </p>
+                        <p>
+                          Mentee confirmation:{" "}
+                          {meeting.menteeAttendanceConfirmedAt
+                            ? "Confirmed"
+                            : "Pending"}
+                        </p>
+                      </div>
+                      {!meeting.mentorAttendanceConfirmedAt ? (
+                        <form action={confirmAttendanceAction} className="mt-4">
+                          <input
+                            name="meetingId"
+                            type="hidden"
+                            value={meeting.id}
+                          />
+                          <button
+                            className="rounded-lg bg-zinc-950 px-4 py-2 text-sm font-medium text-white hover:bg-zinc-800"
+                            type="submit"
+                          >
+                            Confirm attendance
+                          </button>
+                        </form>
+                      ) : null}
+                    </div>
+                  ) : null}
+
+                  {meeting.status === MeetingStatus.ATTENDANCE_CONFIRMED ? (
+                    <p className="mt-4 text-sm text-emerald-700">
+                      Both participants confirmed. This meeting will complete
+                      after its scheduled time.
+                    </p>
+                  ) : null}
+
+                  {activeStatuses.has(meeting.status) ? (
+                    <form action={cancelMeetingAction} className="mt-4">
                       <input
                         name="meetingId"
                         type="hidden"
                         value={meeting.id}
                       />
                       <button
-                        className="rounded-lg bg-zinc-950 px-4 py-2 text-sm font-medium text-white hover:bg-zinc-800"
+                        className="text-sm font-medium text-red-700 hover:underline"
                         type="submit"
                       >
-                        Confirm attendance
+                        Cancel meeting
                       </button>
                     </form>
                   ) : null}
 
-                  {meeting.status === MeetingStatus.COMPLETED &&
-                  !hasFeedback ? (
+                  {meeting.status === MeetingStatus.COMPLETED ? (
+                    <MeetingVerificationPanel
+                      meeting={meeting}
+                      userId={mentorId}
+                      workspace="mentor"
+                    />
+                  ) : null}
+
+                  {canSubmitFeedback(meeting, mentorId) ? (
                     <FeedbackForm meetingId={meeting.id} workspace="mentor" />
+                  ) : null}
+
+                  {meeting.status === MeetingStatus.NOT_COMPLETED ? (
+                    <p className="mt-4 text-sm text-zinc-600">
+                      This meeting was marked as not completed.
+                    </p>
                   ) : null}
                 </article>
               );

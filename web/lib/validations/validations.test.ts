@@ -3,7 +3,10 @@ import { describe, expect, it } from "vitest";
 import {
   feedbackCreateSchema,
   meetingCreateSchema,
+  meetingRescheduleIntentSchema,
+  meetingVerificationAnswerSchema,
   mentorProfileCreateSchema,
+  notificationActionSchema,
   proposeMeetingSlotsSchema,
   userUpdateSchema,
 } from "./index";
@@ -81,6 +84,38 @@ describe("core DTO validation", () => {
           },
         ],
       }).success,
+    ).toBe(false);
+  });
+
+  it("requires boolean verification and reschedule answers", () => {
+    expect(
+      meetingVerificationAnswerSchema.safeParse({
+        meetingId: userId,
+        didHappen: true,
+      }).success,
+    ).toBe(true);
+    expect(
+      meetingVerificationAnswerSchema.safeParse({
+        meetingId: userId,
+        didHappen: "yes",
+      }).success,
+    ).toBe(false);
+    expect(
+      meetingRescheduleIntentSchema.safeParse({
+        meetingId: userId,
+        wantsReschedule: false,
+      }).success,
+    ).toBe(true);
+  });
+
+  it("validates notification action identifiers", () => {
+    expect(
+      notificationActionSchema.safeParse({ notificationId: userId })
+        .success,
+    ).toBe(true);
+    expect(
+      notificationActionSchema.safeParse({ notificationId: "invalid" })
+        .success,
     ).toBe(false);
   });
 });

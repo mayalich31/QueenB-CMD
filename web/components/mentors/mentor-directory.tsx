@@ -1,40 +1,34 @@
 import Link from "next/link";
-import { redirect } from "next/navigation";
 
+import { requestMeetingAction } from "@/app/dashboard/actions";
 import {
   MENTORING_TOPIC_LABELS,
   MENTORING_TOPIC_VALUES,
 } from "@/lib/constants/mentoring-topics";
 import { listMentors } from "@/lib/services/mentor-profiles";
-import { createClient } from "@/lib/supabase/server";
 import { mentoringTopicSchema } from "@/lib/validations/mentor-profile";
 
-import { requestMeetingAction } from "./actions";
-
-type MentorDirectoryPageProps = {
-  searchParams: Promise<{
-    topic?: string | string[];
-    error?: string;
-    message?: string;
-  }>;
+export type MentorDirectorySearchParams = {
+  topic?: string | string[];
+  error?: string;
+  message?: string;
 };
 
-export default async function MentorDirectoryPage({
+type MentorDirectoryProps = {
+  currentUserId: string;
+  searchParams: MentorDirectorySearchParams;
+  isSoftBlocked?: boolean;
+};
+
+export async function MentorDirectory({
+  currentUserId,
   searchParams,
-}: MentorDirectoryPageProps) {
-  const supabase = await createClient();
-  const { data } = await supabase.auth.getClaims();
-  const userId = data?.claims?.sub;
-
-  if (!userId) {
-    redirect("/login");
-  }
-
-  const params = await searchParams;
-  const rawTopics = Array.isArray(params.topic)
-    ? params.topic
-    : params.topic
-      ? [params.topic]
+  isSoftBlocked = false,
+}: MentorDirectoryProps) {
+  const rawTopics = Array.isArray(searchParams.topic)
+    ? searchParams.topic
+    : searchParams.topic
+      ? [searchParams.topic]
       : [];
   const topics = [
     ...new Set(
@@ -44,36 +38,36 @@ export default async function MentorDirectoryPage({
       }),
     ),
   ];
-  const mentors = await listMentors({ topics }, userId);
+  const mentors = await listMentors({ topics }, currentUserId);
 
   return (
     <section>
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
-          <p className="text-sm font-medium text-amber-700">Mentee workspace</p>
-          <h1 className="mt-2 text-3xl font-semibold">Mentor directory</h1>
+          <p className="text-sm font-medium text-amber-700">Mentor discovery</p>
+          <h1 className="mt-2 text-3xl font-semibold">Find your next mentor</h1>
           <p className="mt-3 text-zinc-600">
-            Filter active mentors by every topic you need.
+            Browse available mentors and filter by every topic you need.
           </p>
         </div>
         {topics.length > 0 ? (
           <Link
             className="text-sm font-medium text-amber-700 hover:underline"
-            href="/dashboard/mentee/directory"
+            href="/dashboard"
           >
             Clear filters
           </Link>
         ) : null}
       </div>
 
-      {params.error ? (
+      {searchParams.error ? (
         <p className="mt-6 rounded-lg bg-red-50 p-3 text-sm text-red-700">
-          {params.error}
+          {searchParams.error}
         </p>
       ) : null}
-      {params.message ? (
+      {searchParams.message ? (
         <p className="mt-6 rounded-lg bg-emerald-50 p-3 text-sm text-emerald-700">
-          {params.message}
+          {searchParams.message}
         </p>
       ) : null}
 
@@ -83,7 +77,7 @@ export default async function MentorDirectoryPage({
       >
         <fieldset>
           <legend className="text-sm font-semibold text-zinc-900">
-            Advisory topics
+            Expertise and interests
           </legend>
           <div className="mt-3 flex flex-wrap gap-2">
             {MENTORING_TOPIC_VALUES.map((topic) => (
@@ -153,7 +147,13 @@ export default async function MentorDirectoryPage({
               <form action={requestMeetingAction} className="mt-6">
                 <input name="mentorId" type="hidden" value={mentor.userId} />
                 <button
-                  className="w-full rounded-lg bg-zinc-950 px-4 py-2.5 text-sm font-medium text-white hover:bg-zinc-800"
+                  className="w-full rounded-lg bg-zinc-950 px-4 py-2.5 text-sm font-medium text-white hover:bg-zinc-800 disabled:cursor-not-allowed disabled:bg-zinc-400"
+                  disabled={isSoftBlocked}
+                  title={
+                    isSoftBlocked
+                      ? "Submit overdue feedback before requesting another meeting."
+                      : undefined
+                  }
                   type="submit"
                 >
                   Request meeting
