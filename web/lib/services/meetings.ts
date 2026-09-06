@@ -1,4 +1,6 @@
 import {
+  clearMeetingSlots,
+  completeEligibleMeetings,
   countActiveMentorMeetings,
   createMeeting,
   findActiveMeetingBetween,
@@ -6,6 +8,7 @@ import {
   findMeetingById,
   findMeetingSlotById,
   listMenteeMeetings as listMenteeMeetingRecords,
+  listMentorMeetings as listMentorMeetingRecords,
   listPendingMentorRequests,
   markMeetingSlotSelected,
   replaceMeetingSlots,
@@ -76,12 +79,19 @@ export async function requestMeetingForMentee(
   });
 }
 
-export function listMeetingsForMentee(menteeId: string) {
+export async function listMeetingsForMentee(menteeId: string) {
+  await completeEligibleMeetings();
   return listMenteeMeetingRecords(menteeId);
 }
 
-export function listRequestsForMentor(mentorId: string) {
+export async function listRequestsForMentor(mentorId: string) {
+  await completeEligibleMeetings();
   return listPendingMentorRequests(mentorId);
+}
+
+export async function listMeetingsForMentor(mentorId: string) {
+  await completeEligibleMeetings();
+  return listMentorMeetingRecords(mentorId);
 }
 
 export async function rejectMeetingRequest(
@@ -111,14 +121,27 @@ export async function rejectMeetingRequest(
   });
 }
 
-export async function proposeMeetingSlots(input: unknown) {
+export async function proposeMeetingSlotsForMentor(
+  mentorId: string,
+  input: unknown,
+) {
   const data = proposeMeetingSlotsSchema.parse(input);
+
+  if (data.slots.some((slot) => slot.startsAt <= new Date())) {
+    throw new MeetingRequestError("Meeting time options must be in the future.");
+  }
 
   return prisma.$transaction(async (transaction) => {
     const meeting = await findMeetingById(data.meetingId, transaction);
 
     if (!meeting) {
       throw new MeetingNotFoundError();
+    }
+
+    if (meeting.mentorId !== mentorId) {
+      throw new MeetingRequestError(
+        "Only the assigned mentor can propose meeting times.",
+      );
     }
 
     const patch = getMeetingTransitionPatch(
@@ -131,17 +154,24 @@ export async function proposeMeetingSlots(input: unknown) {
   });
 }
 
-export async function selectMeetingSlot(input: unknown) {
+export async function selectMeetingSlotForMentee(
+  menteeId: string,
+  input: unknown,
+) {
   const data = selectMeetingSlotSchema.parse(input);
 
   return prisma.$transaction(async (transaction) => {
-    const [meeting, slot] = await Promise.all([
-      findMeetingById(data.meetingId, transaction),
-      findMeetingSlotById(data.slotId, transaction),
-    ]);
+    const meeting = await findMeetingById(data.meetingId, transaction);
+    const slot = await findMeetingSlotById(data.slotId, transaction);
 
     if (!meeting || !slot || slot.meetingId !== meeting.id) {
       throw new MeetingNotFoundError();
+    }
+
+    if (meeting.menteeId !== menteeId) {
+      throw new MeetingRequestError(
+        "Only the assigned mentee can select a meeting time.",
+      );
     }
 
     const patch = getMeetingTransitionPatch(
@@ -159,14 +189,54 @@ export async function selectMeetingSlot(input: unknown) {
   });
 }
 
-export async function transitionMeetingStatus(input: unknown) {
-  const data = meetingStatusUpdateSchema.parse(input);
+export async function requestMoreMeetingTimes(
+  menteeId: string,
+  meetingId: string,
+) {
+  const data = meetingStatusUpdateSchema.parse({
+    meetingId,
+    status: MeetingStatus.WAITING_FOR_MENTOR_TIMES,
+  });
 
   return prisma.$transaction(async (transaction) => {
     const meeting = await findMeetingById(data.meetingId, transaction);
 
     if (!meeting) {
       throw new MeetingNotFoundError();
+    }
+
+    if (meeting.menteeId !== menteeId) {
+      throw new MeetingRequestError(
+        "Only the assigned mentee can request more times.",
+      );
+    }
+
+    const patch = getMeetingTransitionPatch(meeting, data.status);
+    await clearMeetingSlots(meeting.id, transaction);
+    return updateMeetingState(meeting.id, patch, transaction);
+  });
+}
+
+export async function confirmMeetingAttendance(
+  mentorId: string,
+  meetingId: string,
+) {
+  const data = meetingStatusUpdateSchema.parse({
+    meetingId,
+    status: MeetingStatus.ATTENDANCE_CONFIRMED,
+  });
+
+  return prisma.$transaction(async (transaction) => {
+    const meeting = await findMeetingById(data.meetingId, transaction);
+
+    if (!meeting) {
+      throw new MeetingNotFoundError();
+    }
+
+    if (meeting.mentorId !== mentorId) {
+      throw new MeetingRequestError(
+        "Only the assigned mentor can confirm attendance.",
+      );
     }
 
     const patch = getMeetingTransitionPatch(meeting, data.status);

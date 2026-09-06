@@ -4,6 +4,7 @@ import {
   feedbackCreateSchema,
   meetingCreateSchema,
   mentorProfileCreateSchema,
+  proposeMeetingSlotsSchema,
   userUpdateSchema,
 } from "./index";
 
@@ -66,6 +67,20 @@ describe("core DTO validation", () => {
     ).toBe(true);
     expect(
       feedbackCreateSchema.safeParse({ ...validFeedback, rating: 6 }).success,
+    ).toBe(false);
+  });
+
+  it("rejects meeting slots whose end is not after their start", () => {
+    expect(
+      proposeMeetingSlotsSchema.safeParse({
+        meetingId: userId,
+        slots: [
+          {
+            startsAt: "2026-09-06T12:00:00.000Z",
+            endsAt: "2026-09-06T11:00:00.000Z",
+          },
+        ],
+      }).success,
     ).toBe(false);
   });
 });

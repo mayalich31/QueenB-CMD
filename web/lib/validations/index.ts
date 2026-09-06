@@ -27,6 +27,7 @@ export {
 } from "./meeting";
 export {
   feedbackCreateSchema,
+  feedbackFormSchema,
   type FeedbackCreateInput,
 } from "./feedback";
 export {

@@ -7,4 +7,8 @@ export const feedbackCreateSchema = z.object({
   comment: z.string().trim().max(2_000).optional(),
 });
 
+export const feedbackFormSchema = feedbackCreateSchema.omit({
+  authorId: true,
+});
+
 export type FeedbackCreateInput = z.infer<typeof feedbackCreateSchema>;

@@ -1,7 +1,10 @@
 import { createFeedback as createFeedbackRecord } from "@/lib/dal/feedback";
 import { findMeetingById } from "@/lib/dal/meetings";
 import { MeetingStatus } from "@/lib/generated/prisma/enums";
-import { feedbackCreateSchema } from "@/lib/validations/feedback";
+import {
+  feedbackCreateSchema,
+  feedbackFormSchema,
+} from "@/lib/validations/feedback";
 
 import { MeetingNotFoundError } from "./meetings";
 
@@ -12,8 +15,12 @@ export class FeedbackNotAllowedError extends Error {
   }
 }
 
-export async function createFeedback(input: unknown) {
-  const data = feedbackCreateSchema.parse(input);
+export async function createFeedbackForUser(
+  authorId: string,
+  input: unknown,
+) {
+  const formData = feedbackFormSchema.parse(input);
+  const data = feedbackCreateSchema.parse({ ...formData, authorId });
   const meeting = await findMeetingById(data.meetingId);
 
   if (!meeting) {

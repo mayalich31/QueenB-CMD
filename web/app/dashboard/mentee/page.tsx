@@ -1,11 +1,27 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 
+import { FeedbackForm } from "@/components/meetings/feedback-form";
 import { MEETING_STATUS_LABELS } from "@/lib/constants/meeting-statuses";
+import { MeetingStatus } from "@/lib/generated/prisma/enums";
 import { listMeetingsForMentee } from "@/lib/services/meetings";
 import { createClient } from "@/lib/supabase/server";
 
-export default async function MenteeDashboardPage() {
+import {
+  requestMoreTimesAction,
+  selectMeetingSlotAction,
+} from "./actions";
+
+type MenteeDashboardPageProps = {
+  searchParams: Promise<{
+    error?: string;
+    message?: string;
+  }>;
+};
+
+export default async function MenteeDashboardPage({
+  searchParams,
+}: MenteeDashboardPageProps) {
   const supabase = await createClient();
   const { data } = await supabase.auth.getClaims();
   const userId = data?.claims?.sub;
@@ -14,7 +30,10 @@ export default async function MenteeDashboardPage() {
     redirect("/login");
   }
 
-  const meetings = await listMeetingsForMentee(userId);
+  const [meetings, status] = await Promise.all([
+    listMeetingsForMentee(userId),
+    searchParams,
+  ]);
 
   return (
     <section>
@@ -31,26 +50,96 @@ export default async function MenteeDashboardPage() {
         Browse mentors
       </Link>
 
+      {status.error ? (
+        <p className="mt-6 rounded-lg bg-red-50 p-3 text-sm text-red-700">
+          {status.error}
+        </p>
+      ) : null}
+      {status.message ? (
+        <p className="mt-6 rounded-lg bg-emerald-50 p-3 text-sm text-emerald-700">
+          {status.message}
+        </p>
+      ) : null}
+
       <div className="mt-10">
         <h2 className="text-xl font-semibold">Your meeting requests</h2>
         {meetings.length > 0 ? (
           <div className="mt-4 space-y-3">
-            {meetings.map((meeting) => (
-              <article
-                className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-zinc-200 bg-white p-4"
-                key={meeting.id}
-              >
-                <div>
-                  <p className="font-medium">{meeting.mentor.username}</p>
-                  <p className="mt-1 text-sm text-zinc-500">
-                    Requested {meeting.createdAt.toLocaleDateString()}
-                  </p>
-                </div>
-                <span className="rounded-full bg-amber-50 px-3 py-1 text-sm text-amber-800">
-                  {MEETING_STATUS_LABELS[meeting.status]}
-                </span>
-              </article>
-            ))}
+            {meetings.map((meeting) => {
+              const hasFeedback = meeting.feedback.some(
+                (feedback) => feedback.authorId === userId,
+              );
+
+              return (
+                <article
+                  className="rounded-xl border border-zinc-200 bg-white p-4"
+                  key={meeting.id}
+                >
+                  <div className="flex flex-wrap items-center justify-between gap-3">
+                    <div>
+                      <p className="font-medium">{meeting.mentor.username}</p>
+                      <p className="mt-1 text-sm text-zinc-500">
+                        {meeting.scheduledAt
+                          ? meeting.scheduledAt.toLocaleString()
+                          : `Requested ${meeting.createdAt.toLocaleDateString()}`}
+                      </p>
+                    </div>
+                    <span className="rounded-full bg-amber-50 px-3 py-1 text-sm text-amber-800">
+                      {MEETING_STATUS_LABELS[meeting.status]}
+                    </span>
+                  </div>
+
+                  {meeting.status ===
+                  MeetingStatus.WAITING_FOR_MENTEE_SELECTION ? (
+                    <div className="mt-4 border-t border-zinc-100 pt-4">
+                      <p className="text-sm font-medium">Choose a time</p>
+                      <div className="mt-3 flex flex-wrap gap-2">
+                        {meeting.slots.map((slot) => (
+                          <form action={selectMeetingSlotAction} key={slot.id}>
+                            <input
+                              name="meetingId"
+                              type="hidden"
+                              value={meeting.id}
+                            />
+                            <input
+                              name="slotId"
+                              type="hidden"
+                              value={slot.id}
+                            />
+                            <button
+                              className="rounded-lg border border-zinc-300 px-3 py-2 text-sm hover:bg-zinc-50"
+                              type="submit"
+                            >
+                              {slot.startsAt.toLocaleString()}
+                            </button>
+                          </form>
+                        ))}
+                      </div>
+                      {!meeting.hasRequestedMoreTimes ? (
+                        <form action={requestMoreTimesAction} className="mt-3">
+                          <input
+                            name="meetingId"
+                            type="hidden"
+                            value={meeting.id}
+                          />
+                          <button
+                            className="text-sm font-medium text-amber-700 hover:underline"
+                            type="submit"
+                          >
+                            None work — request more times
+                          </button>
+                        </form>
+                      ) : null}
+                    </div>
+                  ) : null}
+
+                  {meeting.status === MeetingStatus.COMPLETED &&
+                  !hasFeedback ? (
+                    <FeedbackForm meetingId={meeting.id} workspace="mentee" />
+                  ) : null}
+                </article>
+              );
+            })}
           </div>
         ) : (
           <p className="mt-4 rounded-xl border border-dashed border-zinc-300 p-6 text-zinc-600">

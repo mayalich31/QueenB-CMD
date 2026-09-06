@@ -67,6 +67,21 @@ describe("getMeetingTransitionPatch", () => {
     ).toThrow(InvalidMeetingTransitionError);
   });
 
+  it("moves a scheduled meeting to attendance confirmed", () => {
+    const scheduledMeeting = {
+      ...baseMeeting,
+      status: MeetingStatus.SCHEDULED,
+      scheduledAt: new Date("2026-09-06T13:00:00.000Z"),
+    };
+
+    expect(
+      getMeetingTransitionPatch(
+        scheduledMeeting,
+        MeetingStatus.ATTENDANCE_CONFIRMED,
+      ),
+    ).toEqual({ status: MeetingStatus.ATTENDANCE_CONFIRMED });
+  });
+
   it("only completes an attendance-confirmed meeting after its start time", () => {
     const now = new Date("2026-09-06T12:00:00.000Z");
     const meeting = {

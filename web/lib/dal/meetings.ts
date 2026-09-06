@@ -95,6 +95,28 @@ export function listMenteeMeetings(menteeId: string) {
   });
 }
 
+export function listMentorMeetings(mentorId: string) {
+  return prisma.meeting.findMany({
+    where: { mentorId },
+    include: {
+      mentee: true,
+      slots: { orderBy: { startsAt: "asc" } },
+      feedback: true,
+    },
+    orderBy: { updatedAt: "desc" },
+  });
+}
+
+export function completeEligibleMeetings(now = new Date()) {
+  return prisma.meeting.updateMany({
+    where: {
+      status: MeetingStatus.ATTENDANCE_CONFIRMED,
+      scheduledAt: { lte: now },
+    },
+    data: { status: MeetingStatus.COMPLETED },
+  });
+}
+
 export function listMeetingsForUser(userId: string) {
   return prisma.meeting.findMany({
     where: {
@@ -154,4 +176,11 @@ export async function replaceMeetingSlots(
   return database.meetingSlot.createMany({
     data: slots.map((slot) => ({ ...slot, meetingId })),
   });
+}
+
+export function clearMeetingSlots(
+  meetingId: string,
+  database: DatabaseClient = prisma,
+) {
+  return database.meetingSlot.deleteMany({ where: { meetingId } });
 }
