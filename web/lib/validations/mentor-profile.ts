@@ -1,12 +1,20 @@
 import { z } from "zod";
 
+import { MENTORING_TOPIC_VALUES } from "@/lib/constants/mentoring-topics";
+
+export const mentoringTopicSchema = z.enum(MENTORING_TOPIC_VALUES);
+
 const topicsSchema = z
-  .array(z.string().trim().min(1).max(64))
+  .array(mentoringTopicSchema)
   .min(1, "Select at least one mentoring topic.")
   .max(20, "A mentor may select at most 20 topics.")
   .refine((topics) => new Set(topics).size === topics.length, {
     message: "Mentoring topics must be unique.",
   });
+
+export const mentorDirectoryFilterSchema = z.object({
+  topics: z.array(mentoringTopicSchema).max(20).default([]),
+});
 
 export const mentorProfileCreateSchema = z.object({
   userId: z.uuid({ error: "User ID must be a valid UUID." }),
@@ -21,8 +29,11 @@ export const mentorProfileCreateSchema = z.object({
   isActive: z.boolean().optional().default(true),
 });
 
-export const mentorProfileUpdateSchema = mentorProfileCreateSchema
-  .omit({ userId: true })
+export const mentorProfileFormSchema = mentorProfileCreateSchema.omit({
+  userId: true,
+});
+
+export const mentorProfileUpdateSchema = mentorProfileFormSchema
   .partial()
   .refine((value) => Object.keys(value).length > 0, {
     message: "At least one mentor profile field must be provided.",

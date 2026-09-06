@@ -35,7 +35,19 @@ describe("core DTO validation", () => {
       mentorProfileCreateSchema.safeParse({
         userId,
         background: "Experienced engineering mentor.",
-        topics: ["career-planning", "career-planning"],
+        topics: ["career_planning", "career_planning"],
+        maxConcurrentMeetings: 3,
+        meetingDurationMinutes: 30,
+      }).success,
+    ).toBe(false);
+  });
+
+  it("rejects mentor topics outside the controlled directory taxonomy", () => {
+    expect(
+      mentorProfileCreateSchema.safeParse({
+        userId,
+        background: "Experienced engineering mentor.",
+        topics: ["unrecognized_topic"],
         maxConcurrentMeetings: 3,
         meetingDurationMinutes: 30,
       }).success,

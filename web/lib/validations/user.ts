@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-const usernameSchema = z
+export const usernameSchema = z
   .string()
   .trim()
   .min(3, "Username must be at least 3 characters.")
@@ -10,12 +10,14 @@ const usernameSchema = z
     "Username may only contain letters, numbers, underscores, and hyphens.",
   );
 
+export const emailSchema = z
+  .string()
+  .trim()
+  .pipe(z.email({ error: "Email must be valid." }).max(254));
+
 export const userCreateSchema = z.object({
   id: z.uuid({ error: "User ID must be a valid UUID." }),
-  email: z
-    .string()
-    .trim()
-    .pipe(z.email({ error: "Email must be valid." }).max(254)),
+  email: emailSchema,
   username: usernameSchema,
 });
 

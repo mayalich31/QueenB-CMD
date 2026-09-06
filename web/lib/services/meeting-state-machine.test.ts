@@ -25,6 +25,12 @@ describe("getMeetingTransitionPatch", () => {
     ).toEqual({ status: MeetingStatus.WAITING_FOR_MENTEE_SELECTION });
   });
 
+  it("allows the mentor to reject a new request", () => {
+    expect(
+      getMeetingTransitionPatch(baseMeeting, MeetingStatus.CANCELLED),
+    ).toEqual({ status: MeetingStatus.CANCELLED });
+  });
+
   it("consumes the single request-for-more-times iteration", () => {
     const meeting = {
       ...baseMeeting,

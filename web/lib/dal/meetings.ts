@@ -1,6 +1,7 @@
+import { ACTIVE_MEETING_STATUSES } from "@/lib/constants/meeting-statuses";
 import { prisma } from "@/lib/prisma";
 import type { Prisma } from "@/lib/generated/prisma/client";
-import type { MeetingStatus } from "@/lib/generated/prisma/enums";
+import { MeetingStatus } from "@/lib/generated/prisma/enums";
 import type { MeetingCreateInput } from "@/lib/validations/meeting";
 
 export type DatabaseClient = Prisma.TransactionClient | typeof prisma;
@@ -19,6 +20,45 @@ export function createMeeting(
   return database.meeting.create({ data });
 }
 
+export function findActiveMeetingBetween(
+  menteeId: string,
+  mentorId: string,
+  database: DatabaseClient = prisma,
+) {
+  return database.meeting.findFirst({
+    where: {
+      menteeId,
+      mentorId,
+      status: { in: [...ACTIVE_MEETING_STATUSES] },
+    },
+  });
+}
+
+export function findActiveMentorProfile(
+  mentorId: string,
+  database: DatabaseClient = prisma,
+) {
+  return database.mentorProfile.findFirst({
+    where: {
+      userId: mentorId,
+      isActive: true,
+      user: { isMentor: true },
+    },
+  });
+}
+
+export function countActiveMentorMeetings(
+  mentorId: string,
+  database: DatabaseClient = prisma,
+) {
+  return database.meeting.count({
+    where: {
+      mentorId,
+      status: { in: [...ACTIVE_MEETING_STATUSES] },
+    },
+  });
+}
+
 export function findMeetingById(
   id: string,
   database: DatabaseClient = prisma,
@@ -29,6 +69,29 @@ export function findMeetingById(
       slots: { orderBy: { startsAt: "asc" } },
       feedback: true,
     },
+  });
+}
+
+export function listPendingMentorRequests(mentorId: string) {
+  return prisma.meeting.findMany({
+    where: {
+      mentorId,
+      status: MeetingStatus.WAITING_FOR_MENTOR_TIMES,
+    },
+    include: { mentee: true },
+    orderBy: { createdAt: "asc" },
+  });
+}
+
+export function listMenteeMeetings(menteeId: string) {
+  return prisma.meeting.findMany({
+    where: { menteeId },
+    include: {
+      mentor: true,
+      slots: { orderBy: { startsAt: "asc" } },
+      feedback: true,
+    },
+    orderBy: { updatedAt: "desc" },
   });
 }
 

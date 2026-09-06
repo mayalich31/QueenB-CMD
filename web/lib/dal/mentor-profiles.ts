@@ -1,3 +1,4 @@
+import { ACTIVE_MEETING_STATUSES } from "@/lib/constants/meeting-statuses";
 import { prisma } from "@/lib/prisma";
 import type {
   MentorProfileCreateInput,
@@ -11,15 +12,41 @@ export function findMentorProfile(userId: string) {
   });
 }
 
-export function listActiveMentors(topics: string[] = []) {
-  return prisma.mentorProfile.findMany({
+type ListAvailableMentorsOptions = {
+  topics?: string[];
+  excludeUserId?: string;
+};
+
+export async function listAvailableMentors({
+  topics = [],
+  excludeUserId,
+}: ListAvailableMentorsOptions = {}) {
+  const mentors = await prisma.mentorProfile.findMany({
     where: {
       isActive: true,
+      ...(excludeUserId ? { userId: { not: excludeUserId } } : {}),
       ...(topics.length > 0 ? { topics: { hasEvery: topics } } : {}),
     },
-    include: { user: true },
+    include: {
+      user: {
+        include: {
+          _count: {
+            select: {
+              mentorMeetings: {
+                where: { status: { in: [...ACTIVE_MEETING_STATUSES] } },
+              },
+            },
+          },
+        },
+      },
+    },
     orderBy: { createdAt: "desc" },
   });
+
+  return mentors.filter(
+    (mentor) =>
+      mentor.user._count.mentorMeetings < mentor.maxConcurrentMeetings,
+  );
 }
 
 export function createMentorProfile(data: MentorProfileCreateInput) {

@@ -1,7 +1,12 @@
 import {
+  countActiveMentorMeetings,
   createMeeting,
+  findActiveMeetingBetween,
+  findActiveMentorProfile,
   findMeetingById,
   findMeetingSlotById,
+  listMenteeMeetings as listMenteeMeetingRecords,
+  listPendingMentorRequests,
   markMeetingSlotSelected,
   replaceMeetingSlots,
   updateMeetingState,
@@ -24,9 +29,86 @@ export class MeetingNotFoundError extends Error {
   }
 }
 
-export async function requestMeeting(input: unknown) {
-  const data = meetingCreateSchema.parse(input);
-  return createMeeting(data);
+export class MeetingRequestError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "MeetingRequestError";
+  }
+}
+
+export async function requestMeetingForMentee(
+  menteeId: string,
+  mentorId: string,
+) {
+  const data = meetingCreateSchema.parse({ menteeId, mentorId });
+
+  return prisma.$transaction(async (transaction) => {
+    const mentorProfile = await findActiveMentorProfile(mentorId, transaction);
+
+    if (!mentorProfile) {
+      throw new MeetingRequestError("This mentor is not currently available.");
+    }
+
+    const existingMeeting = await findActiveMeetingBetween(
+      menteeId,
+      mentorId,
+      transaction,
+    );
+
+    if (existingMeeting) {
+      throw new MeetingRequestError(
+        "You already have an active request with this mentor.",
+      );
+    }
+
+    const activeMeetingCount = await countActiveMentorMeetings(
+      mentorId,
+      transaction,
+    );
+
+    if (activeMeetingCount >= mentorProfile.maxConcurrentMeetings) {
+      throw new MeetingRequestError(
+        "This mentor has reached their current meeting capacity.",
+      );
+    }
+
+    return createMeeting(data, transaction);
+  });
+}
+
+export function listMeetingsForMentee(menteeId: string) {
+  return listMenteeMeetingRecords(menteeId);
+}
+
+export function listRequestsForMentor(mentorId: string) {
+  return listPendingMentorRequests(mentorId);
+}
+
+export async function rejectMeetingRequest(
+  mentorId: string,
+  meetingId: string,
+) {
+  const data = meetingStatusUpdateSchema.parse({
+    meetingId,
+    status: MeetingStatus.CANCELLED,
+  });
+
+  return prisma.$transaction(async (transaction) => {
+    const meeting = await findMeetingById(data.meetingId, transaction);
+
+    if (!meeting) {
+      throw new MeetingNotFoundError();
+    }
+
+    if (meeting.mentorId !== mentorId) {
+      throw new MeetingRequestError(
+        "Only the assigned mentor can reject this request.",
+      );
+    }
+
+    const patch = getMeetingTransitionPatch(meeting, data.status);
+    return updateMeetingState(meeting.id, patch, transaction);
+  });
 }
 
 export async function proposeMeetingSlots(input: unknown) {

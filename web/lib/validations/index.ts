@@ -1,4 +1,6 @@
 export {
+  emailSchema,
+  usernameSchema,
   userCreateSchema,
   userUpdateSchema,
   type UserCreateInput,
@@ -6,7 +8,10 @@ export {
 } from "./user";
 export {
   mentorProfileCreateSchema,
+  mentorProfileFormSchema,
   mentorProfileUpdateSchema,
+  mentorDirectoryFilterSchema,
+  mentoringTopicSchema,
   type MentorProfileCreateInput,
   type MentorProfileUpdateInput,
 } from "./mentor-profile";
@@ -24,3 +29,9 @@ export {
   feedbackCreateSchema,
   type FeedbackCreateInput,
 } from "./feedback";
+export {
+  loginSchema,
+  registerSchema,
+  type LoginInput,
+  type RegisterInput,
+} from "./auth";
