@@ -1,6 +1,9 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  adminCalendarMonthSchema,
+  adminMeetingsFilterSchema,
+  adminUsersFilterSchema,
   feedbackCreateSchema,
   meetingCreateSchema,
   meetingRescheduleIntentSchema,
@@ -117,5 +120,39 @@ describe("core DTO validation", () => {
       notificationActionSchema.safeParse({ notificationId: "invalid" })
         .success,
     ).toBe(false);
+  });
+
+  it("rejects invalid admin meeting status filters and parses participant search", () => {
+    expect(
+      adminMeetingsFilterSchema.safeParse({
+        status: "NOT_A_STATUS",
+        page: "1",
+      }).success,
+    ).toBe(false);
+    expect(
+      adminMeetingsFilterSchema.parse({
+        status: "SCHEDULED",
+        participant: "  maya  ",
+        page: "2",
+      }),
+    ).toEqual({
+      status: "SCHEDULED",
+      participant: "maya",
+      page: 2,
+    });
+  });
+
+  it("parses admin calendar months and user search", () => {
+    expect(adminCalendarMonthSchema.parse({ month: "2026-09" })).toEqual({
+      year: 2026,
+      month: 9,
+    });
+    expect(
+      adminCalendarMonthSchema.safeParse({ month: "2026-13" }).success,
+    ).toBe(false);
+    expect(adminUsersFilterSchema.parse({ q: "  admin@gmail.com  ", page: "3" })).toEqual({
+      q: "admin@gmail.com",
+      page: 3,
+    });
   });
 });

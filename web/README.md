@@ -81,6 +81,8 @@ reschedule.
 - `/dashboard/profile`: pending requests, upcoming meetings, history, and
   mentor activation/settings.
 - `/dashboard/mentor`: mentor request and meeting operations.
+- `/admin`: read-only alerts inbox, meetings report, master calendar, and
+  user directory. Available only when signed in as `admin@gmail.com`.
 
 ## Architecture
 
@@ -130,9 +132,11 @@ for the signed-in user. After migrate, confirm in Supabase:
 
 ## Current MVP boundaries
 
-- Click-to-paint calendars, slide-over meeting routing, admin tools,
-  WhatsApp/SMS, profile photos, and optional professional fields remain
-  deferred.
+- Click-to-paint calendars, slide-over meeting routing, WhatsApp/SMS, profile
+  photos, and optional professional fields remain deferred.
+- `/admin` is a read-only triage console. Access is granted only to the
+  existing `admin@gmail.com` account; the `User.isAdmin` flag does not grant
+  access to any other user.
 - A full automated two-user E2E test requires isolated Supabase test credentials
   and deterministic email confirmation. Until those are provisioned, use the
   documented demo flow alongside the automated domain test suite.

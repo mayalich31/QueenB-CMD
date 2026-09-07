@@ -12,6 +12,7 @@ import {
 } from "@/components/notifications/realtime-provider";
 import { NotificationToastHost } from "@/components/notifications/toast-host";
 import { getFeedbackEnforcementState } from "@/lib/services/enforcement";
+import { isSoleAdminEmail } from "@/lib/services/admin-authorization";
 import { listRecentNotifications } from "@/lib/services/notifications";
 
 export const dynamic = "force-dynamic";
@@ -75,6 +76,14 @@ export default async function DashboardLayout({
                   href="/dashboard/mentor"
                 >
                   Mentor
+                </Link>
+              ) : null}
+              {isSoleAdminEmail(user?.email) ? (
+                <Link
+                  className="rounded-lg px-3 py-2 text-sm font-medium hover:bg-zinc-100"
+                  href="/admin"
+                >
+                  Admin
                 </Link>
               ) : null}
               <NotificationBell />

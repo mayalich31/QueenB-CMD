@@ -162,6 +162,28 @@ export function listCompletedMeetingsAwaitingFeedback(
   });
 }
 
+export function listVerifiedCompletedMeetingsForAdmin() {
+  return prisma.meeting.findMany({
+    where: {
+      status: MeetingStatus.COMPLETED,
+      verifications: {
+        some: {
+          verificationResolvedAt: { not: null },
+          mentorDidHappen: true,
+          menteeDidHappen: true,
+        },
+      },
+    },
+    include: {
+      mentee: { select: adminMeetingParticipantSelect },
+      mentor: { select: adminMeetingParticipantSelect },
+      feedback: true,
+      verifications: { orderBy: { cycle: "asc" } },
+    },
+    orderBy: { completedAt: "desc" },
+  });
+}
+
 export function listCompletedMeetingsForUser(
   userId: string,
   database: DatabaseClient = prisma,
@@ -297,4 +319,110 @@ export function updateMeetingVerification(
   database: DatabaseClient = prisma,
 ) {
   return database.meetingVerification.update({ where: { id }, data });
+}
+
+const adminMeetingParticipantSelect = {
+  id: true,
+  username: true,
+  email: true,
+} as const;
+
+const adminMeetingListInclude = {
+  mentee: { select: adminMeetingParticipantSelect },
+  mentor: { select: adminMeetingParticipantSelect },
+} as const;
+
+export type AdminMeetingListFilters = {
+  status?: MeetingStatus;
+  participant?: string;
+};
+
+function adminMeetingWhere(filters: AdminMeetingListFilters) {
+  const participant = filters.participant;
+  const participantFilter = participant
+    ? {
+        OR: [
+          { mentee: { username: { contains: participant, mode: "insensitive" as const } } },
+          { mentee: { email: { contains: participant, mode: "insensitive" as const } } },
+          { mentor: { username: { contains: participant, mode: "insensitive" as const } } },
+          { mentor: { email: { contains: participant, mode: "insensitive" as const } } },
+        ],
+      }
+    : {};
+
+  return {
+    ...(filters.status ? { status: filters.status } : {}),
+    ...participantFilter,
+  };
+}
+
+export function listMeetingsForAdmin(
+  filters: AdminMeetingListFilters,
+  skip: number,
+  take: number,
+) {
+  return prisma.meeting.findMany({
+    where: adminMeetingWhere(filters),
+    include: adminMeetingListInclude,
+    orderBy: { updatedAt: "desc" },
+    skip,
+    take,
+  });
+}
+
+export function countMeetingsForAdmin(filters: AdminMeetingListFilters) {
+  return prisma.meeting.count({ where: adminMeetingWhere(filters) });
+}
+
+export function findAdminMeetingById(id: string) {
+  return prisma.meeting.findUnique({
+    where: { id },
+    include: {
+      mentee: { select: adminMeetingParticipantSelect },
+      mentor: { select: adminMeetingParticipantSelect },
+      slots: { orderBy: { startsAt: "asc" } },
+      feedback: { include: { author: { select: adminMeetingParticipantSelect } } },
+      verifications: { orderBy: { cycle: "asc" } },
+    },
+  });
+}
+
+export function listNotCompletedMeetingsForAdmin() {
+  return prisma.meeting.findMany({
+    where: { status: MeetingStatus.NOT_COMPLETED },
+    include: adminMeetingListInclude,
+    orderBy: { updatedAt: "desc" },
+  });
+}
+
+export function listStuckAttendanceMeetingsForAdmin(now = new Date()) {
+  return prisma.meeting.findMany({
+    where: {
+      status: MeetingStatus.ATTENDANCE_CONFIRMED,
+      scheduledAt: { lte: now },
+    },
+    include: adminMeetingListInclude,
+    orderBy: { scheduledAt: "asc" },
+  });
+}
+
+export function listMeetingsInUtcRangeForAdmin(start: Date, end: Date) {
+  return prisma.meeting.findMany({
+    where: {
+      scheduledAt: {
+        gte: start,
+        lt: end,
+      },
+    },
+    include: adminMeetingListInclude,
+    orderBy: { scheduledAt: "asc" },
+  });
+}
+
+export function listCompletedMentorMeetingCounts() {
+  return prisma.meeting.groupBy({
+    by: ["mentorId"],
+    where: { status: MeetingStatus.COMPLETED },
+    _count: { id: true },
+  });
 }
