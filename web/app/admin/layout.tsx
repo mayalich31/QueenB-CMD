@@ -2,6 +2,7 @@ import Link from "next/link";
 
 import { logout } from "@/app/(auth)/actions";
 import { AdminSidebar } from "@/components/admin/admin-sidebar";
+import { UserInitialAvatar } from "@/components/user-initial-avatar";
 import { requireAdminUser } from "@/lib/services/admin-authorization";
 
 export const dynamic = "force-dynamic";
@@ -11,7 +12,7 @@ export default async function AdminLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  await requireAdminUser();
+  const user = await requireAdminUser();
 
   return (
     <div className="min-h-screen bg-zinc-50 text-zinc-950">
@@ -38,6 +39,7 @@ export default async function AdminLayout({
                 Sign out
               </button>
             </form>
+            <UserInitialAvatar name={user.username} />
           </nav>
         </div>
       </header>

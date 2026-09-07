@@ -11,6 +11,7 @@ import {
   type NotificationItem,
 } from "@/components/notifications/realtime-provider";
 import { NotificationToastHost } from "@/components/notifications/toast-host";
+import { UserInitialAvatar } from "@/components/user-initial-avatar";
 import { getFeedbackEnforcementState } from "@/lib/services/enforcement";
 import { isSoleAdminEmail } from "@/lib/services/admin-authorization";
 import { listUnreadNotifications } from "@/lib/services/notifications";
@@ -97,6 +98,9 @@ export default async function DashboardLayout({
                   Sign out
                 </button>
               </form>
+              {user?.username ? (
+                <UserInitialAvatar name={user.username} />
+              ) : null}
             </nav>
           </div>
         </header>
