@@ -4,6 +4,7 @@ import {
 } from "@/lib/constants/admin";
 import { FEEDBACK_SOFT_BLOCK_DAYS, FEEDBACK_SOFT_BLOCK_MS, MS_PER_DAY } from "@/lib/constants/enforcement";
 import {
+  countMeetingsByStatusForAdmin,
   countMeetingsForAdmin,
   findAdminMeetingById,
   listCompletedMentorMeetingCounts,
@@ -14,6 +15,7 @@ import {
   listVerifiedCompletedMeetingsForAdmin,
 } from "@/lib/dal/meetings";
 import {
+  countMentorsForAdmin,
   countUsersForAdmin,
   findAdminUserById,
   findUsersByIds,
@@ -328,4 +330,72 @@ export async function getAdminUsersDirectory(filters: AdminUsersFilterInput) {
 
 export async function getAdminUserDetail(id: string) {
   return findAdminUserById(id);
+}
+
+export function emptyMeetingStatusCounts(): Record<MeetingStatus, number> {
+  return {
+    [MeetingStatus.WAITING_FOR_MENTOR_TIMES]: 0,
+    [MeetingStatus.WAITING_FOR_MENTEE_SELECTION]: 0,
+    [MeetingStatus.SCHEDULED]: 0,
+    [MeetingStatus.ATTENDANCE_CONFIRMED]: 0,
+    [MeetingStatus.COMPLETED]: 0,
+    [MeetingStatus.NOT_COMPLETED]: 0,
+    [MeetingStatus.CANCELLED]: 0,
+  };
+}
+
+export function summarizeMeetingStatuses(
+  rows: Array<{ status: MeetingStatus; _count: { id: number } }>,
+) {
+  const counts = emptyMeetingStatusCounts();
+  for (const row of rows) {
+    counts[row.status] = row._count.id;
+  }
+  return counts;
+}
+
+export function countAlertsByKind(alerts: AdminAlert[]) {
+  const counts: Record<AdminAlertKind, number> = {
+    NOT_COMPLETED: 0,
+    STUCK_ATTENDANCE: 0,
+    OVERDUE_FEEDBACK: 0,
+    MENTOR_MILESTONE: 0,
+  };
+
+  for (const alert of alerts) {
+    counts[alert.kind] += 1;
+  }
+
+  return counts;
+}
+
+export async function getAdminSummary(now = new Date()) {
+  const [userTotal, mentorTotal, statusRows, alerts] = await Promise.all([
+    countUsersForAdmin(undefined),
+    countMentorsForAdmin(),
+    countMeetingsByStatusForAdmin(),
+    getAdminInbox(now),
+  ]);
+
+  const meetingStatusCounts = summarizeMeetingStatuses(statusRows);
+  const meetingTotal = Object.values(meetingStatusCounts).reduce(
+    (sum, count) => sum + count,
+    0,
+  );
+
+  return {
+    users: {
+      total: userTotal,
+      mentors: mentorTotal,
+      others: userTotal - mentorTotal,
+    },
+    meetings: {
+      total: meetingTotal,
+      byStatus: meetingStatusCounts,
+    },
+    alerts: {
+      total: alerts.length,
+      byKind: countAlertsByKind(alerts),
+    },
+  };
 }

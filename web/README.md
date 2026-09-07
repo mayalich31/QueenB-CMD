@@ -77,12 +77,14 @@ reschedule.
 
 ## Authenticated routes
 
+- `/`: public landing page with login and registration links.
 - `/dashboard`: mentor directory homepage with URL-based topic filtering.
 - `/dashboard/profile`: pending requests, upcoming meetings, history, and
   mentor activation/settings.
 - `/dashboard/mentor`: mentor request and meeting operations.
-- `/admin`: read-only alerts inbox, meetings report, master calendar, and
-  user directory. Available only when signed in as `admin@gmail.com`.
+- `/admin`: read-only general summary, alerts inbox, meetings report, master
+  calendar, and user directory. Available only when signed in as
+  `admin@gmail.com`. `/admin` is the summary; alerts live at `/admin/alerts`.
 
 ## Architecture
 

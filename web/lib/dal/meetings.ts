@@ -426,3 +426,10 @@ export function listCompletedMentorMeetingCounts() {
     _count: { id: true },
   });
 }
+
+export function countMeetingsByStatusForAdmin() {
+  return prisma.meeting.groupBy({
+    by: ["status"],
+    _count: { id: true },
+  });
+}

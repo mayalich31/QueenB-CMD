@@ -2,6 +2,7 @@ import { describe, expect, it, vi } from "vitest";
 
 vi.mock("@/lib/prisma", () => ({ prisma: {} }));
 vi.mock("@/lib/dal/meetings", () => ({
+  countMeetingsByStatusForAdmin: vi.fn(),
   countMeetingsForAdmin: vi.fn(),
   findAdminMeetingById: vi.fn(),
   listCompletedMentorMeetingCounts: vi.fn(),
@@ -12,6 +13,7 @@ vi.mock("@/lib/dal/meetings", () => ({
   listVerifiedCompletedMeetingsForAdmin: vi.fn(),
 }));
 vi.mock("@/lib/dal/users", () => ({
+  countMentorsForAdmin: vi.fn(),
   countUsersForAdmin: vi.fn(),
   findAdminUserById: vi.fn(),
   findUsersByIds: vi.fn(),
@@ -26,8 +28,10 @@ import {
   buildAdminAlerts,
   buildUtcMonthGrid,
   classifyOverdueFeedbackMeetings,
+  countAlertsByKind,
   mentorsReachingMilestone,
   shiftUtcMonth,
+  summarizeMeetingStatuses,
   utcMonthRange,
 } from "./admin";
 import type { VerifiableMeeting } from "./meeting-verification";
@@ -165,5 +169,49 @@ describe("admin calendar month helpers", () => {
   it("shifts months across year boundaries", () => {
     expect(shiftUtcMonth(2026, 1, -1)).toEqual({ year: 2025, month: 12 });
     expect(shiftUtcMonth(2026, 12, 1)).toEqual({ year: 2027, month: 1 });
+  });
+});
+
+describe("admin summary aggregation", () => {
+  it("fills every meeting status and totals alert kinds", () => {
+    const byStatus = summarizeMeetingStatuses([
+      { status: MeetingStatus.SCHEDULED, _count: { id: 4 } },
+      { status: MeetingStatus.COMPLETED, _count: { id: 2 } },
+    ]);
+
+    expect(byStatus[MeetingStatus.SCHEDULED]).toBe(4);
+    expect(byStatus[MeetingStatus.COMPLETED]).toBe(2);
+    expect(byStatus[MeetingStatus.CANCELLED]).toBe(0);
+
+    expect(
+      countAlertsByKind([
+        {
+          kind: "NOT_COMPLETED",
+          href: "/admin/meetings/1",
+          title: "Did not happen",
+          detail: "",
+          occurredAt: new Date(),
+        },
+        {
+          kind: "NOT_COMPLETED",
+          href: "/admin/meetings/2",
+          title: "Did not happen",
+          detail: "",
+          occurredAt: new Date(),
+        },
+        {
+          kind: "OVERDUE_FEEDBACK",
+          href: "/admin/meetings/3",
+          title: "Overdue",
+          detail: "",
+          occurredAt: new Date(),
+        },
+      ]),
+    ).toEqual({
+      NOT_COMPLETED: 2,
+      STUCK_ATTENDANCE: 0,
+      OVERDUE_FEEDBACK: 1,
+      MENTOR_MILESTONE: 0,
+    });
   });
 });

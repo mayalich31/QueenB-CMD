@@ -62,7 +62,7 @@ export default async function DashboardLayout({
                 className="rounded-lg px-3 py-2 text-sm font-medium hover:bg-zinc-100"
                 href="/dashboard"
               >
-                Directory
+                Home
               </Link>
               <Link
                 className="rounded-lg px-3 py-2 text-sm font-medium hover:bg-zinc-100"

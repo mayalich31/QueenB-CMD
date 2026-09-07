@@ -28,7 +28,7 @@ export default async function AdminLayout({
               className="rounded-lg px-3 py-2 text-sm font-medium hover:bg-zinc-100"
               href="/dashboard"
             >
-              Workspace
+              Home
             </Link>
             <form action={logout}>
               <button
