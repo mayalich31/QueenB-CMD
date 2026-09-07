@@ -76,6 +76,19 @@ export function findMeetingById(
   });
 }
 
+export function findParticipantMeetingById(id: string) {
+  return prisma.meeting.findUnique({
+    where: { id },
+    include: {
+      mentee: { select: { id: true, username: true, email: true } },
+      mentor: { select: { id: true, username: true, email: true } },
+      slots: { orderBy: { startsAt: "asc" } },
+      feedback: true,
+      verifications: { orderBy: { cycle: "asc" } },
+    },
+  });
+}
+
 export function listPendingMentorRequests(mentorId: string) {
   return prisma.meeting.findMany({
     where: {

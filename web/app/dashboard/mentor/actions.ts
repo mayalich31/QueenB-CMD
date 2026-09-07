@@ -47,6 +47,7 @@ export async function rejectMeetingRequestAction(formData: FormData) {
   revalidatePath("/dashboard/mentor");
   revalidatePath("/dashboard/profile");
   revalidatePath("/dashboard");
+  revalidatePath("/meetings", "layout");
 
   const searchParams = new URLSearchParams({
     message: "Meeting request rejected.",
@@ -101,6 +102,7 @@ export async function proposeMeetingSlotsAction(formData: FormData) {
 
   revalidatePath("/dashboard/mentor");
   revalidatePath("/dashboard/profile");
+  revalidatePath("/meetings", "layout");
   redirect("/dashboard/mentor?message=Time+options+sent.");
 }
 
@@ -126,6 +128,7 @@ export async function confirmAttendanceAction(formData: FormData) {
 
   revalidatePath("/dashboard/mentor");
   revalidatePath("/dashboard/profile");
+  revalidatePath("/meetings", "layout");
   redirect("/dashboard/mentor?message=Your+confirmation+was+saved.");
 }
 
@@ -152,5 +155,6 @@ export async function cancelMeetingAction(formData: FormData) {
   revalidatePath("/dashboard");
   revalidatePath("/dashboard/profile");
   revalidatePath("/dashboard/mentor");
+  revalidatePath("/meetings", "layout");
   redirect("/dashboard/mentor?message=Meeting+cancelled.");
 }

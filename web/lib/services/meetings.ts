@@ -8,8 +8,10 @@ import {
   findMeetingById,
   findMeetingSlotById,
   findMeetingVerification,
+  findParticipantMeetingById,
   listMenteeMeetings as listMenteeMeetingRecords,
   listMentorMeetings as listMentorMeetingRecords,
+  listMeetingsForUser as listMeetingsForUserRecords,
   listPendingMentorRequests,
   markMeetingSlotSelected,
   lockMeetingForUpdate,
@@ -121,6 +123,24 @@ export async function listRequestsForMentor(mentorId: string) {
 
 export async function listMeetingsForMentor(mentorId: string) {
   return listMentorMeetingRecords(mentorId);
+}
+
+export async function listMeetingsForParticipant(userId: string) {
+  return listMeetingsForUserRecords(userId);
+}
+
+export async function getMeetingForParticipant(
+  userId: string,
+  meetingId: string,
+) {
+  const meeting = await findParticipantMeetingById(meetingId);
+
+  if (!meeting) {
+    throw new MeetingNotFoundError();
+  }
+
+  assertMeetingParticipant(meeting, userId);
+  return meeting;
 }
 
 export { runMeetingCompletionJob as completeEligibleMeetings } from "./cron-jobs";

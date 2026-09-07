@@ -74,5 +74,6 @@ export async function submitFeedbackAction(formData: FormData) {
 
   revalidatePath("/dashboard/profile");
   revalidatePath("/dashboard/mentor");
+  revalidatePath("/meetings", "layout");
   redirect(`/dashboard/${workspace}?message=Feedback+submitted.`);
 }

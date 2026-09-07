@@ -33,6 +33,7 @@ function revalidateMeetingViews() {
   revalidatePath("/dashboard");
   revalidatePath("/dashboard/profile");
   revalidatePath("/dashboard/mentor");
+  revalidatePath("/meetings", "layout");
 }
 
 export async function selectMeetingSlotAction(formData: FormData) {

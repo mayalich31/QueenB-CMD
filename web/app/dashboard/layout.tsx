@@ -13,14 +13,16 @@ import {
 import { NotificationToastHost } from "@/components/notifications/toast-host";
 import { getFeedbackEnforcementState } from "@/lib/services/enforcement";
 import { isSoleAdminEmail } from "@/lib/services/admin-authorization";
-import { listRecentNotifications } from "@/lib/services/notifications";
+import { listUnreadNotifications } from "@/lib/services/notifications";
 
 export const dynamic = "force-dynamic";
 
 export default async function DashboardLayout({
   children,
+  drawer,
 }: Readonly<{
   children: React.ReactNode;
+  drawer?: React.ReactNode;
 }>) {
   const supabase = await createClient();
   const { data } = await supabase.auth.getClaims();
@@ -32,7 +34,7 @@ export default async function DashboardLayout({
 
   const [user, notificationRecords, enforcement] = await Promise.all([
     findUserById(claims.sub),
-    listRecentNotifications(claims.sub),
+    listUnreadNotifications(claims.sub),
     getFeedbackEnforcementState(claims.sub),
   ]);
   const initialNotifications: NotificationItem[] = notificationRecords.map(
@@ -104,6 +106,7 @@ export default async function DashboardLayout({
           />
         ) : null}
         <main className="mx-auto max-w-6xl px-4 py-8">{children}</main>
+        {drawer}
         <NotificationToastHost />
       </div>
     </NotificationRealtimeProvider>

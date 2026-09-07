@@ -89,22 +89,15 @@ export function NotificationBell() {
                     key={notification.id}
                   >
                     <Link
-                      className={`block px-4 py-3 hover:bg-zinc-50 focus-visible:outline-2 focus-visible:outline-inset focus-visible:outline-amber-700 ${
-                        notification.readAt ? "" : "bg-amber-50"
-                      }`}
+                      className="block bg-amber-50 px-4 py-3 hover:bg-zinc-50 focus-visible:outline-2 focus-visible:outline-inset focus-visible:outline-amber-700"
                       href={presentation.href}
                       onClick={() => {
                         setOpen(false);
-                        if (!notification.readAt) {
-                          void markRead(notification.id);
-                        }
+                        void markRead(notification.id);
                       }}
                     >
                       <span className="block text-sm font-semibold">
                         {presentation.title}
-                        {!notification.readAt ? (
-                          <span className="sr-only"> (unread)</span>
-                        ) : null}
                       </span>
                       <span className="mt-1 block text-sm text-zinc-600">
                         {presentation.description}
@@ -116,7 +109,7 @@ export function NotificationBell() {
             </ul>
           ) : (
             <p className="px-4 py-8 text-center text-sm text-zinc-500">
-              No notifications yet.
+              No unread notifications.
             </p>
           )}
         </section>

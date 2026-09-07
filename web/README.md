@@ -81,7 +81,10 @@ reschedule.
 - `/dashboard`: mentor directory homepage with URL-based topic filtering.
 - `/dashboard/profile`: pending requests, upcoming meetings, history, and
   mentor activation/settings.
-- `/dashboard/mentor`: mentor request and meeting operations.
+- `/dashboard/mentor`: mentor calendar command center (inbound requests and
+  click-to-paint time proposals). `/dashboard/mentor/calendar` redirects here.
+- `/meetings/[id]`: meeting control room. Soft navigation from the dashboard
+  opens it as a slide-over.
 - `/admin`: read-only general summary, alerts inbox, meetings report, master
   calendar, and user directory. Available only when signed in as
   `admin@gmail.com`. `/admin` is the summary; alerts live at `/admin/alerts`.
@@ -134,8 +137,10 @@ for the signed-in user. After migrate, confirm in Supabase:
 
 ## Current MVP boundaries
 
-- Click-to-paint calendars, slide-over meeting routing, WhatsApp/SMS, profile
-  photos, and optional professional fields remain deferred.
+- Click-to-paint calendars remain limited to the mentor week grid; the admin
+  master calendar stays a UTC month view. Slide-over meeting routing is live
+  at `/meetings/[id]`. WhatsApp/SMS, profile photos, and optional professional
+  fields remain deferred.
 - `/admin` is a read-only triage console. Access is granted only to the
   existing `admin@gmail.com` account; the `User.isAdmin` flag does not grant
   access to any other user.

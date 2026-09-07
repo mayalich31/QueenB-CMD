@@ -1,29 +1,40 @@
 import { redirect } from "next/navigation";
+import Link from "next/link";
 
 import { FeedbackForm } from "@/components/meetings/feedback-form";
 import { MeetingVerificationPanel } from "@/components/meetings/meeting-verification-panel";
+import { MeetingWeekGrid } from "@/components/meetings/meeting-week-grid";
 import { MentorProfileForm } from "@/components/mentors/mentor-profile-form";
+import { SlotSelectionButtons } from "@/components/meetings/slot-selection-buttons";
 import { canSubmitFeedback } from "@/lib/services/meeting-verification";
 import {
   ACTIVE_MEETING_STATUSES,
   getMeetingStatusLabel,
+  MENTEE_CALENDAR_STATUSES,
 } from "@/lib/constants/meeting-statuses";
 import { findMentorProfile } from "@/lib/dal/mentor-profiles";
 import { MeetingStatus } from "@/lib/generated/prisma/enums";
-import { listMeetingsForMentee } from "@/lib/services/meetings";
+import {
+  listMeetingsForMentee,
+  listMeetingsForParticipant,
+} from "@/lib/services/meetings";
+import {
+  formatWeekParam,
+  parseWeekParam,
+} from "@/lib/services/week-calendar";
 import { createClient } from "@/lib/supabase/server";
 
 import {
   cancelMeetingAction,
   confirmAttendanceAction,
   requestMoreTimesAction,
-  selectMeetingSlotAction,
 } from "./actions";
 
 type ProfilePageProps = {
   searchParams: Promise<{
     error?: string;
     message?: string;
+    week?: string;
   }>;
 };
 
@@ -63,24 +74,20 @@ function MeetingCard({
           {getMeetingStatusLabel(meeting)}
         </span>
       </div>
+      <Link
+        className="mt-2 inline-block text-sm font-medium text-amber-800 hover:underline"
+        href={`/meetings/${meeting.id}`}
+      >
+        Open meeting
+      </Link>
 
       {meeting.status === MeetingStatus.WAITING_FOR_MENTEE_SELECTION ? (
         <div className="mt-4 border-t border-zinc-100 pt-4">
           <p className="text-sm font-medium">Choose a time</p>
-          <div className="mt-3 flex flex-wrap gap-2">
-            {meeting.slots.map((slot) => (
-              <form action={selectMeetingSlotAction} key={slot.id}>
-                <input name="meetingId" type="hidden" value={meeting.id} />
-                <input name="slotId" type="hidden" value={slot.id} />
-                <button
-                  className="rounded-lg border border-zinc-300 px-3 py-2 text-sm hover:bg-zinc-50"
-                  type="submit"
-                >
-                  {slot.startsAt.toLocaleString()}
-                </button>
-              </form>
-            ))}
-          </div>
+          <SlotSelectionButtons
+            meetingId={meeting.id}
+            slots={meeting.slots}
+          />
           {!meeting.hasRequestedMoreTimes ? (
             <form action={requestMoreTimesAction} className="mt-3">
               <input name="meetingId" type="hidden" value={meeting.id} />
@@ -201,11 +208,13 @@ export default async function ProfilePage({
     redirect("/login");
   }
 
-  const [meetings, mentorProfile, status] = await Promise.all([
+  const [menteeMeetings, allMeetings, mentorProfile, status] = await Promise.all([
     listMeetingsForMentee(userId),
+    listMeetingsForParticipant(userId),
     findMentorProfile(userId),
     searchParams,
   ]);
+  const meetings = menteeMeetings;
   const pendingMeetings = meetings.filter((meeting) =>
     pendingStatuses.has(meeting.status),
   );
@@ -217,6 +226,35 @@ export default async function ProfilePage({
       !pendingStatuses.has(meeting.status) &&
       !upcomingStatuses.has(meeting.status),
   );
+  const menteeCalendarStatuses = new Set<string>(MENTEE_CALENDAR_STATUSES);
+  const weekParam = formatWeekParam(parseWeekParam(status.week));
+  const calendarEvents = allMeetings.flatMap((meeting) => {
+    if (
+      !menteeCalendarStatuses.has(meeting.status) ||
+      !meeting.scheduledAt
+    ) {
+      return [];
+    }
+
+    const selectedSlot = meeting.slots.find((slot) => slot.isSelected);
+    const endsAt =
+      selectedSlot?.endsAt ??
+      new Date(meeting.scheduledAt.getTime() + 30 * 60_000);
+    const role = meeting.mentorId === userId ? ("mentor" as const) : ("mentee" as const);
+    const counterpartName =
+      role === "mentor" ? meeting.mentee.username : meeting.mentor.username;
+
+    return [
+      {
+        meetingId: meeting.id,
+        counterpartName,
+        status: meeting.status,
+        startsAt: meeting.scheduledAt.toISOString(),
+        endsAt: endsAt.toISOString(),
+        role,
+      },
+    ];
+  });
 
   return (
     <div>
@@ -236,6 +274,21 @@ export default async function ProfilePage({
           {status.message}
         </p>
       ) : null}
+
+      <section className="mt-10">
+        <h2 className="text-xl font-semibold">Calendar</h2>
+        <p className="mt-2 text-sm text-zinc-600">
+          Scheduled meetings you booked as a mentee and sessions booked with
+          you as a mentor. Each block is tagged with your role.
+        </p>
+        <div className="mt-4">
+          <MeetingWeekGrid
+            basePath="/dashboard/profile"
+            events={calendarEvents}
+            weekParam={weekParam}
+          />
+        </div>
+      </section>
 
       <MeetingSection
         title="Pending requests"

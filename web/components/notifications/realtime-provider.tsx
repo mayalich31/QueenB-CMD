@@ -129,26 +129,16 @@ export function NotificationRealtimeProvider({
   }, [dismissToast, userId]);
 
   const markRead = useCallback(async (notificationId: string) => {
-    const readAt = new Date().toISOString();
-    setNotifications((current) =>
-      current.map((notification) =>
-        notification.id === notificationId && !notification.readAt
-          ? { ...notification, readAt }
-          : notification,
-      ),
-    );
+    let snapshot: NotificationItem[] = [];
+    setNotifications((current) => {
+      snapshot = current;
+      return current.filter((notification) => notification.id !== notificationId);
+    });
 
     try {
       await markNotificationReadAction(notificationId);
     } catch {
-      setNotifications((current) =>
-        current.map((notification) =>
-          notification.id === notificationId &&
-          notification.readAt === readAt
-            ? { ...notification, readAt: null }
-            : notification,
-        ),
-      );
+      setNotifications(snapshot);
     }
   }, []);
 

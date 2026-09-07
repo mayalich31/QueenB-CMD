@@ -21,6 +21,11 @@ const nextConfig: NextConfig = {
         destination: "/dashboard/profile#mentor",
         permanent: true,
       },
+      {
+        source: "/dashboard/mentor/calendar",
+        destination: "/dashboard/mentor",
+        permanent: false,
+      },
     ];
   },
 };

@@ -27,6 +27,25 @@ export const MEETING_STATUS_COLORS: Record<MeetingStatus, string> = {
   [MeetingStatus.CANCELLED]: "bg-zinc-100 text-zinc-500",
 };
 
+export const MENTEE_CALENDAR_STATUSES = [
+  MeetingStatus.SCHEDULED,
+  MeetingStatus.ATTENDANCE_CONFIRMED,
+  MeetingStatus.COMPLETED,
+  MeetingStatus.NOT_COMPLETED,
+  MeetingStatus.CANCELLED,
+] as const;
+
+export function calendarSlotTitle(
+  counterpartName: string,
+  status: MeetingStatus,
+  role?: "mentee" | "mentor",
+) {
+  const roleLabel = role === "mentor" ? "as mentor" : role === "mentee" ? "as mentee" : "";
+  return roleLabel
+    ? `${counterpartName} · ${MEETING_STATUS_LABELS[status]} · ${roleLabel}`
+    : `${counterpartName} · ${MEETING_STATUS_LABELS[status]}`;
+}
+
 type MeetingConfirmationState = {
   status: MeetingStatus;
   mentorAttendanceConfirmedAt: Date | null;
