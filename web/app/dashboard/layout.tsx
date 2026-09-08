@@ -11,6 +11,7 @@ import {
   type NotificationItem,
 } from "@/components/notifications/realtime-provider";
 import { NotificationToastHost } from "@/components/notifications/toast-host";
+import { QueenBLogo, QueensMatchMark } from "@/components/brand-lockup";
 import { UserInitialAvatar } from "@/components/user-initial-avatar";
 import { getFeedbackEnforcementState } from "@/lib/services/enforcement";
 import { isSoleAdminEmail } from "@/lib/services/admin-authorization";
@@ -43,6 +44,7 @@ export default async function DashboardLayout({
       ...notification,
       createdAt: notification.createdAt.toISOString(),
       readAt: notification.readAt?.toISOString() ?? null,
+      message: notification.message ?? null,
     }),
   );
 
@@ -51,31 +53,26 @@ export default async function DashboardLayout({
       initialNotifications={initialNotifications}
       userId={claims.sub}
     >
-      <div className="min-h-screen bg-zinc-50 text-zinc-950">
-        <header className="border-b border-zinc-200 bg-white">
-          <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-4">
-            <Link
-              className="font-semibold tracking-widest text-amber-700"
-              href="/"
-            >
-              QUEENS MATCH
-            </Link>
-            <nav className="flex items-center gap-2" aria-label="Workspace">
+      <div className="min-h-screen bg-cream text-zinc-950">
+        <header className="border-b border-brand/40 bg-cream-card">
+          <div className="mx-auto flex max-w-6xl items-center gap-3 px-4 py-4">
+            <QueensMatchMark href="/" />
+            <nav className="ml-auto flex items-center gap-2" aria-label="Workspace">
               <Link
-                className="rounded-lg px-3 py-2 text-sm font-medium hover:bg-zinc-100"
+                className="rounded-lg px-3 py-2 text-sm font-medium hover:bg-brand/30"
                 href="/dashboard"
               >
                 Home
               </Link>
               <Link
-                className="rounded-lg px-3 py-2 text-sm font-medium hover:bg-zinc-100"
+                className="rounded-lg px-3 py-2 text-sm font-medium hover:bg-brand/30"
                 href="/dashboard/profile"
               >
                 My Profile
               </Link>
               {user?.isMentor ? (
                 <Link
-                  className="rounded-lg px-3 py-2 text-sm font-medium hover:bg-zinc-100"
+                  className="rounded-lg px-3 py-2 text-sm font-medium hover:bg-brand/30"
                   href="/dashboard/mentor"
                 >
                   Mentor
@@ -83,7 +80,7 @@ export default async function DashboardLayout({
               ) : null}
               {isSoleAdminEmail(user?.email) ? (
                 <Link
-                  className="rounded-lg px-3 py-2 text-sm font-medium hover:bg-zinc-100"
+                  className="rounded-lg px-3 py-2 text-sm font-medium hover:bg-brand/30"
                   href="/admin"
                 >
                   Admin
@@ -92,7 +89,7 @@ export default async function DashboardLayout({
               <NotificationBell />
               <form action={logout}>
                 <button
-                  className="rounded-lg px-3 py-2 text-sm text-zinc-600 hover:bg-zinc-100"
+                  className="rounded-lg px-3 py-2 text-sm text-zinc-600 hover:bg-brand/30"
                   type="submit"
                 >
                   Sign out
@@ -102,6 +99,7 @@ export default async function DashboardLayout({
                 <UserInitialAvatar name={user.username} />
               ) : null}
             </nav>
+            <QueenBLogo className="h-10 shrink-0" />
           </div>
         </header>
         {enforcement.isSoftBlocked ? (

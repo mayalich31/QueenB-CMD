@@ -49,12 +49,26 @@ const PRESENTATION: Record<
     description: "Feedback is available for your completed meeting.",
     defaultHref: "/dashboard/profile",
   },
+  MENTOR_THANK_YOU: {
+    title: "Thank you",
+    description: "Thank you for contributing your time.",
+    defaultHref: "/dashboard/mentor",
+  },
 };
+
+export function formatMentorThankYouMessage(menteeUsername: string) {
+  return `Thank you for contributing your time to meet with '${menteeUsername}'`;
+}
 
 export function getNotificationPresentation(
   type: NotificationType,
   href?: string | null,
+  message?: string | null,
 ) {
   const presentation = PRESENTATION[type];
-  return { ...presentation, href: href ?? presentation.defaultHref };
+  return {
+    ...presentation,
+    href: href ?? presentation.defaultHref,
+    description: message?.trim() || presentation.description,
+  };
 }

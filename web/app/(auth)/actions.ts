@@ -8,6 +8,7 @@ import { findUserByUsername } from "@/lib/dal/users";
 import { createClient } from "@/lib/supabase/server";
 import { createUser } from "@/lib/services/users";
 import { loginSchema, registerSchema } from "@/lib/validations/auth";
+import { parseOptionalProfileFormData } from "@/lib/validations/user";
 
 function messageUrl(
   path: string,
@@ -52,6 +53,7 @@ export async function register(formData: FormData) {
     email: formData.get("email"),
     username: formData.get("username"),
     password: formData.get("password"),
+    ...parseOptionalProfileFormData(formData),
   });
 
   if (!result.success) {
@@ -99,6 +101,13 @@ export async function register(formData: FormData) {
       id: data.user.id,
       email: result.data.email,
       username: result.data.username,
+      programmingLanguages: result.data.programmingLanguages,
+      githubUrl: result.data.githubUrl,
+      linkedinUrl: result.data.linkedinUrl,
+      yearsOfExperience: result.data.yearsOfExperience,
+      jobTitle: result.data.jobTitle,
+      workplace: result.data.workplace,
+      techStack: result.data.techStack,
     });
     profileCreated = true;
   } catch {

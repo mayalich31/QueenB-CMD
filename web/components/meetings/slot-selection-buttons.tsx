@@ -20,7 +20,7 @@ export function SlotSelectionButtons({
           <input name="meetingId" type="hidden" value={meetingId} />
           <input name="slotId" type="hidden" value={slot.id} />
           <button
-            className="rounded-lg border border-zinc-300 px-3 py-2 text-sm hover:border-amber-600 hover:ring-2 hover:ring-amber-500 hover:ring-offset-1"
+            className="rounded-lg border border-zinc-300 px-3 py-2 text-sm hover:border-brand-deep hover:ring-2 hover:ring-brand hover:ring-offset-1"
             type="submit"
           >
             {slot.startsAt.toLocaleString()}

@@ -41,8 +41,8 @@ function AnswerButton({
       <button
         className={
           variant === "primary"
-            ? "rounded-lg bg-zinc-950 px-4 py-2 text-sm font-medium text-white hover:bg-zinc-800"
-            : "rounded-lg border border-zinc-300 px-4 py-2 text-sm font-medium text-zinc-800 hover:bg-zinc-50"
+            ? "rounded-lg bg-brand-deep px-4 py-2 text-sm font-medium text-white hover:bg-brand"
+            : "rounded-lg border border-zinc-300 px-4 py-2 text-sm font-medium text-zinc-800 hover:bg-cream"
         }
         type="submit"
       >

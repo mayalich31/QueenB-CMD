@@ -53,7 +53,7 @@ export function MentorCalendar({
           </p>
         </div>
         <Link
-          className="rounded-lg border border-zinc-300 px-4 py-2 text-sm font-medium text-zinc-800 hover:bg-zinc-100"
+          className="rounded-lg border border-zinc-300 px-4 py-2 text-sm font-medium text-zinc-800 hover:bg-brand/25"
           href={closeHref}
         >
           Close calendar
@@ -61,7 +61,7 @@ export function MentorCalendar({
       </div>
 
       {pending.length > 0 ? (
-        <form action={proposeMeetingSlotsAction} className="rounded-xl border border-zinc-200 bg-white p-4">
+        <form action={proposeMeetingSlotsAction} className="rounded-xl border border-brand/30 bg-cream-card p-4">
           <input name="meetingId" type="hidden" value={selectedRequestId} />
           {pending.map((iso) => (
             <input key={iso} name="startsAt" type="hidden" value={iso} />
@@ -72,7 +72,7 @@ export function MentorCalendar({
           <div className="mt-2 flex flex-wrap gap-2">
             {pending.map((iso) => (
               <button
-                className="rounded-full bg-sky-100 px-3 py-1 text-xs text-sky-800 hover:ring-2 hover:ring-amber-600"
+                className="rounded-full bg-brand/40 px-3 py-1 text-xs text-zinc-800 hover:ring-2 hover:ring-brand-deep"
                 key={iso}
                 type="button"
                 onClick={() =>
@@ -84,7 +84,7 @@ export function MentorCalendar({
             ))}
           </div>
           <button
-            className="mt-3 rounded-lg bg-zinc-950 px-4 py-2 text-sm font-medium text-white hover:bg-zinc-800"
+            className="mt-3 rounded-lg bg-brand-deep px-4 py-2 text-sm font-medium text-white hover:bg-brand"
             type="submit"
           >
             Send time options
@@ -101,7 +101,7 @@ export function MentorCalendar({
             );
           return (
             <button
-              className={`h-7 w-full border border-transparent border-b-zinc-100 text-left hover:ring-2 hover:ring-inset hover:ring-amber-600 ${
+              className={`h-7 w-full border border-transparent border-b-brand/20 text-left hover:ring-2 hover:ring-inset hover:ring-brand-deep ${
                 isPending ? "bg-sky-100" : ""
               }`}
               type="button"
@@ -115,7 +115,7 @@ export function MentorCalendar({
         weekParam={weekParam}
       />
 
-      <details className="rounded-xl border border-zinc-200 bg-white p-4 text-sm">
+      <details className="rounded-xl border border-brand/30 bg-cream-card p-4 text-sm">
         <summary className="cursor-pointer font-medium">
           Enter times manually
         </summary>

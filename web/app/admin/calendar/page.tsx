@@ -26,7 +26,7 @@ export default async function AdminCalendarPage({
 
   return (
     <section>
-      <p className="text-sm font-medium text-amber-700">Admin</p>
+      <p className="text-sm font-medium text-brand-deep">Admin</p>
       <div className="mt-2 flex flex-wrap items-end justify-between gap-4">
         <div>
           <h1 className="text-3xl font-semibold">Master calendar</h1>
@@ -37,7 +37,7 @@ export default async function AdminCalendarPage({
         </div>
         <div className="flex items-center gap-2 text-sm">
           <Link
-            className="rounded-lg px-3 py-2 hover:bg-zinc-100"
+            className="rounded-lg px-3 py-2 hover:bg-brand/25"
             href={`/admin/calendar?month=${formatUtcMonthParam(calendar.previous.year, calendar.previous.month)}`}
           >
             Previous
@@ -46,7 +46,7 @@ export default async function AdminCalendarPage({
             {monthLabel(calendar.year, calendar.month)}
           </p>
           <Link
-            className="rounded-lg px-3 py-2 hover:bg-zinc-100"
+            className="rounded-lg px-3 py-2 hover:bg-brand/25"
             href={`/admin/calendar?month=${formatUtcMonthParam(calendar.next.year, calendar.next.month)}`}
           >
             Next
@@ -63,7 +63,7 @@ export default async function AdminCalendarPage({
       <div className="mt-8 grid grid-cols-7 gap-px overflow-hidden rounded-2xl border border-zinc-200 bg-zinc-200">
         {weekdayLabels.map((label) => (
           <div
-            className="bg-zinc-50 px-2 py-2 text-center text-xs font-medium text-zinc-500"
+            className="bg-cream px-2 py-2 text-center text-xs font-medium text-zinc-500"
             key={label}
           >
             {label}
@@ -71,7 +71,7 @@ export default async function AdminCalendarPage({
         ))}
         {calendar.cells.map((cell, index) => (
           <div
-            className="min-h-28 bg-white p-2"
+            className="min-h-28 bg-cream-card p-2"
             key={cell.date ? formatUtcDate(cell.date) : `empty-${index}`}
           >
             {cell.date ? (

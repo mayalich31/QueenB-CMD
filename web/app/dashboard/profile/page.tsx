@@ -5,6 +5,8 @@ import { FeedbackForm } from "@/components/meetings/feedback-form";
 import { MeetingVerificationPanel } from "@/components/meetings/meeting-verification-panel";
 import { MeetingWeekGrid } from "@/components/meetings/meeting-week-grid";
 import { MentorProfileForm } from "@/components/mentors/mentor-profile-form";
+import { ProfileDetailsCard } from "@/components/profile/profile-details-card";
+import { ProfileDetailsForm } from "@/components/profile/profile-details-form";
 import { SlotSelectionButtons } from "@/components/meetings/slot-selection-buttons";
 import { canSubmitFeedback } from "@/lib/services/meeting-verification";
 import {
@@ -23,6 +25,7 @@ import {
   parseWeekParam,
 } from "@/lib/services/week-calendar";
 import { createClient } from "@/lib/supabase/server";
+import { findUserById } from "@/lib/dal/users";
 
 import {
   cancelMeetingAction,
@@ -35,6 +38,9 @@ type ProfilePageProps = {
     error?: string;
     message?: string;
     week?: string;
+    edit?: string;
+    mentor?: string;
+    view?: string;
   }>;
 };
 
@@ -60,7 +66,7 @@ function MeetingCard({
   userId: string;
 }) {
   return (
-    <article className="rounded-xl border border-zinc-200 bg-white p-5">
+    <article className="rounded-xl border border-brand/30 bg-cream-card p-5">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <p className="font-medium">{meeting.mentor.username}</p>
@@ -70,12 +76,12 @@ function MeetingCard({
               : `Requested ${meeting.createdAt.toLocaleDateString()}`}
           </p>
         </div>
-        <span className="rounded-full bg-amber-50 px-3 py-1 text-sm text-amber-800">
+        <span className="rounded-full bg-brand/35 px-3 py-1 text-sm text-brand-deep">
           {getMeetingStatusLabel(meeting)}
         </span>
       </div>
       <Link
-        className="mt-2 inline-block text-sm font-medium text-amber-800 hover:underline"
+        className="mt-2 inline-block text-sm font-medium text-brand-deep hover:underline"
         href={`/meetings/${meeting.id}`}
       >
         Open meeting
@@ -92,7 +98,7 @@ function MeetingCard({
             <form action={requestMoreTimesAction} className="mt-3">
               <input name="meetingId" type="hidden" value={meeting.id} />
               <button
-                className="text-sm font-medium text-amber-700 hover:underline"
+                className="text-sm font-medium text-brand-deep hover:underline"
                 type="submit"
               >
                 None work — request more times
@@ -118,7 +124,7 @@ function MeetingCard({
             <form action={confirmAttendanceAction} className="mt-4">
               <input name="meetingId" type="hidden" value={meeting.id} />
               <button
-                className="rounded-lg bg-zinc-950 px-4 py-2 text-sm font-medium text-white hover:bg-zinc-800"
+                className="rounded-lg bg-brand-deep px-4 py-2 text-sm font-medium text-white hover:bg-brand"
                 type="submit"
               >
                 Confirm attendance
@@ -208,12 +214,18 @@ export default async function ProfilePage({
     redirect("/login");
   }
 
-  const [menteeMeetings, allMeetings, mentorProfile, status] = await Promise.all([
+  const [menteeMeetings, allMeetings, mentorProfile, user, status] =
+    await Promise.all([
     listMeetingsForMentee(userId),
     listMeetingsForParticipant(userId),
     findMentorProfile(userId),
+    findUserById(userId),
     searchParams,
   ]);
+
+  if (!user) {
+    redirect("/login");
+  }
   const meetings = menteeMeetings;
   const pendingMeetings = meetings.filter((meeting) =>
     pendingStatuses.has(meeting.status),
@@ -256,13 +268,84 @@ export default async function ProfilePage({
     ];
   });
 
+  const isEditing = status.edit === "1";
+  const isBecomingMentor = status.mentor === "1" && !user.isMentor;
+  const view =
+    status.view === "calendar" ||
+    status.view === "appointments" ||
+    status.view === "history"
+      ? status.view
+      : "overview";
+
+  const tabs = [
+    { id: "overview", label: "Overview", href: "/dashboard/profile" },
+    {
+      id: "calendar",
+      label: "Calendar",
+      href: `/dashboard/profile?view=calendar&week=${weekParam}`,
+    },
+    {
+      id: "appointments",
+      label: "Appointments",
+      href: "/dashboard/profile?view=appointments",
+    },
+    {
+      id: "history",
+      label: "Meeting History",
+      href: "/dashboard/profile?view=history",
+    },
+  ] as const;
+
   return (
     <div>
-      <p className="text-sm font-medium text-amber-700">Personal hub</p>
-      <h1 className="mt-2 text-3xl font-semibold">My Profile</h1>
-      <p className="mt-3 text-zinc-600">
-        Track your requests, upcoming meetings, and mentoring profile.
-      </p>
+      <div className="flex flex-wrap items-start justify-between gap-4">
+        <div>
+          <h1 className="text-3xl font-semibold">My Profile</h1>
+          <p className="mt-3 text-zinc-600">
+            Track your requests, upcoming meetings, and mentoring profile.
+          </p>
+        </div>
+        {view === "overview" ? (
+          <div className="flex flex-wrap justify-end gap-2">
+            <Link
+              className="rounded-lg border border-brand/60 bg-cream-card px-4 py-2 text-sm font-medium text-zinc-800 hover:bg-brand/30"
+              href="/dashboard/profile?edit=1"
+            >
+              Edit Profile
+            </Link>
+            {!user.isMentor ? (
+              <Link
+                className="rounded-lg bg-brand-deep px-4 py-2 text-sm font-medium text-white hover:bg-brand"
+                href="/dashboard/profile?mentor=1"
+              >
+                Become a Mentor
+              </Link>
+            ) : null}
+          </div>
+        ) : null}
+      </div>
+
+      <nav
+        aria-label="Profile sections"
+        className="mt-8 flex flex-wrap gap-1 border-b border-brand/30"
+      >
+        {tabs.map((tab) => {
+          const isActive = view === tab.id;
+          return (
+            <Link
+              className={`rounded-t-lg px-4 py-2.5 text-sm font-medium ${
+                isActive
+                  ? "border border-b-0 border-brand/40 bg-cream-card text-brand-deep"
+                  : "text-zinc-600 hover:bg-brand/20 hover:text-zinc-950"
+              }`}
+              href={tab.href}
+              key={tab.id}
+            >
+              {tab.label}
+            </Link>
+          );
+        })}
+      </nav>
 
       {status.error ? (
         <p className="mt-6 rounded-lg bg-red-50 p-3 text-sm text-red-700">
@@ -275,43 +358,74 @@ export default async function ProfilePage({
         </p>
       ) : null}
 
-      <section className="mt-10">
-        <h2 className="text-xl font-semibold">Calendar</h2>
-        <p className="mt-2 text-sm text-zinc-600">
-          Scheduled meetings you booked as a mentee and sessions booked with
-          you as a mentor. Each block is tagged with your role.
-        </p>
-        <div className="mt-4">
-          <MeetingWeekGrid
-            basePath="/dashboard/profile"
-            events={calendarEvents}
-            weekParam={weekParam}
-          />
-        </div>
-      </section>
+      {view === "overview" ? (
+        <>
+          {isEditing ? (
+            <ProfileDetailsForm
+              mentorProfile={
+                mentorProfile
+                  ? {
+                      background: mentorProfile.background,
+                      topics: mentorProfile.topics,
+                      maxConcurrentMeetings: mentorProfile.maxConcurrentMeetings,
+                      meetingDurationMinutes:
+                        mentorProfile.meetingDurationMinutes,
+                      isActive: mentorProfile.isActive,
+                    }
+                  : null
+              }
+              user={user}
+            />
+          ) : (
+            <ProfileDetailsCard profile={user} />
+          )}
+          {isBecomingMentor ? <MentorProfileForm profile={null} /> : null}
+        </>
+      ) : null}
 
-      <MeetingSection
-        title="Pending requests"
-        meetings={pendingMeetings}
-        userId={userId}
-        emptyMessage="You have no pending requests."
-      />
-      <MeetingSection
-        title="Confirmed and upcoming meetings"
-        meetings={upcomingMeetings}
-        userId={userId}
-        emptyMessage="You have no upcoming meetings."
-      />
-      {historyMeetings.length > 0 ? (
+      {view === "calendar" ? (
+        <section className="mt-8">
+          <h2 className="text-xl font-semibold">Calendar</h2>
+          <p className="mt-2 text-sm text-zinc-600">
+            Scheduled meetings you booked as a mentee and sessions booked with
+            you as a mentor. Each block is tagged with your role.
+          </p>
+          <div className="mt-4">
+            <MeetingWeekGrid
+              basePath="/dashboard/profile"
+              extraQuery={{ view: "calendar" }}
+              events={calendarEvents}
+              weekParam={weekParam}
+            />
+          </div>
+        </section>
+      ) : null}
+
+      {view === "appointments" ? (
+        <>
+          <MeetingSection
+            title="Pending requests"
+            meetings={pendingMeetings}
+            userId={userId}
+            emptyMessage="You have no pending requests."
+          />
+          <MeetingSection
+            title="Confirmed and upcoming meetings"
+            meetings={upcomingMeetings}
+            userId={userId}
+            emptyMessage="You have no upcoming meetings."
+          />
+        </>
+      ) : null}
+
+      {view === "history" ? (
         <MeetingSection
           title="Meeting history"
           meetings={historyMeetings}
           userId={userId}
-          emptyMessage=""
+          emptyMessage="You have no meeting history yet."
         />
       ) : null}
-
-      <MentorProfileForm profile={mentorProfile} />
     </div>
   );
 }

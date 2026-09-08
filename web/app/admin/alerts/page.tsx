@@ -15,7 +15,7 @@ export default async function AdminAlertsPage() {
 
   return (
     <section>
-      <p className="text-sm font-medium text-amber-700">Admin</p>
+      <p className="text-sm font-medium text-brand-deep">Admin</p>
       <h1 className="mt-2 text-3xl font-semibold">Alerts inbox</h1>
       <p className="mt-3 max-w-2xl text-zinc-600">
         Triage meetings that did not happen, attendance that is stuck past the
@@ -24,7 +24,7 @@ export default async function AdminAlertsPage() {
       </p>
 
       {alerts.length === 0 ? (
-        <p className="mt-8 rounded-2xl border border-zinc-200 bg-white p-5 text-sm text-zinc-600">
+        <p className="mt-8 rounded-2xl border border-brand/30 bg-cream-card p-5 text-sm text-zinc-600">
           No alerts right now.
         </p>
       ) : (
@@ -32,10 +32,10 @@ export default async function AdminAlertsPage() {
           {alerts.map((alert) => (
             <li key={`${alert.kind}-${alert.meetingId ?? alert.userId}`}>
               <Link
-                className="block rounded-2xl border border-zinc-200 bg-white p-5 hover:border-amber-300"
+                className="block rounded-2xl border border-brand/30 bg-cream-card p-5 hover:border-brand"
                 href={alert.href}
               >
-                <p className="text-xs font-medium uppercase tracking-wide text-amber-800">
+                <p className="text-xs font-medium uppercase tracking-wide text-brand-deep">
                   {kindLabels[alert.kind]}
                 </p>
                 <p className="mt-2 font-medium text-zinc-900">{alert.title}</p>

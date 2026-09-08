@@ -42,7 +42,7 @@ export function NotificationBell() {
         aria-controls="notification-menu"
         aria-expanded={open}
         aria-label={`Notifications${unreadCount ? `, ${unreadCount} unread` : ""}`}
-        className="relative rounded-lg p-2 text-zinc-600 hover:bg-zinc-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber-700"
+        className="relative rounded-lg p-2 text-zinc-600 hover:bg-brand/25 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-deep"
         onClick={() => setOpen((current) => !current)}
         type="button"
       >
@@ -61,7 +61,7 @@ export function NotificationBell() {
           />
         </svg>
         {unreadCount ? (
-          <span className="absolute -right-1 -top-1 min-w-5 rounded-full bg-amber-700 px-1 text-center text-xs font-semibold leading-5 text-white">
+          <span className="absolute -right-1 -top-1 min-w-5 rounded-full bg-brand-deep px-1 text-center text-xs font-semibold leading-5 text-white">
             {unreadCount > 99 ? "99+" : unreadCount}
           </span>
         ) : null}
@@ -70,7 +70,7 @@ export function NotificationBell() {
       {open ? (
         <section
           aria-label="Notifications"
-          className="absolute right-0 z-40 mt-2 w-[min(22rem,calc(100vw-2rem))] overflow-hidden rounded-xl border border-zinc-200 bg-white shadow-xl"
+          className="absolute right-0 z-40 mt-2 w-[min(22rem,calc(100vw-2rem))] overflow-hidden rounded-xl border border-brand/30 bg-cream-card shadow-xl"
           id="notification-menu"
         >
           <h2 className="border-b border-zinc-100 px-4 py-3 font-semibold">
@@ -82,6 +82,7 @@ export function NotificationBell() {
                 const presentation = getNotificationPresentation(
                   notification.type,
                   notification.href,
+                  notification.message,
                 );
                 return (
                   <li
@@ -89,7 +90,7 @@ export function NotificationBell() {
                     key={notification.id}
                   >
                     <Link
-                      className="block bg-amber-50 px-4 py-3 hover:bg-zinc-50 focus-visible:outline-2 focus-visible:outline-inset focus-visible:outline-amber-700"
+                      className="block bg-brand/30 px-4 py-3 hover:bg-cream focus-visible:outline-2 focus-visible:outline-inset focus-visible:outline-brand-deep"
                       href={presentation.href}
                       onClick={() => {
                         setOpen(false);

@@ -27,16 +27,24 @@ enum NotificationType {
   MEETING_VERIFICATION_REQUIRED
   MEETING_RESCHEDULED
   FEEDBACK_REMINDER
+  MENTOR_THANK_YOU
 }
 
 model User {
-  id        String   @id @db.Uuid
-  email     String   @unique
-  username  String   @unique
-  isMentor  Boolean  @default(false)
-  isAdmin   Boolean  @default(false)
-  createdAt DateTime @default(now()) @db.Timestamptz(3)
-  updatedAt DateTime @updatedAt @db.Timestamptz(3)
+  id                    String   @id @db.Uuid
+  email                 String   @unique
+  username              String   @unique
+  isMentor              Boolean  @default(false)
+  isAdmin               Boolean  @default(false)
+  programmingLanguages  String[] @default([])
+  githubUrl             String?
+  linkedinUrl           String?
+  yearsOfExperience     Int?
+  jobTitle              String?
+  workplace             String?
+  techStack             String?
+  createdAt             DateTime @default(now()) @db.Timestamptz(3)
+  updatedAt             DateTime @updatedAt @db.Timestamptz(3)
 
   mentorProfile   MentorProfile?
   menteeMeetings  Meeting[]      @relation("MeetingMentee")
@@ -140,6 +148,7 @@ model Notification {
   meetingId String?          @db.Uuid
   type      NotificationType
   href      String?
+  message   String?
   readAt    DateTime?        @db.Timestamptz(3)
   dedupeKey String           @unique
   createdAt DateTime         @default(now()) @db.Timestamptz(3)

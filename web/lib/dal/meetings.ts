@@ -69,6 +69,7 @@ export function findMeetingById(
   return database.meeting.findUnique({
     where: { id },
     include: {
+      mentee: { select: { id: true, username: true } },
       slots: { orderBy: { startsAt: "asc" } },
       feedback: true,
       verifications: { orderBy: { cycle: "asc" } },

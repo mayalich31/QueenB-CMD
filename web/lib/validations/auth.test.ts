@@ -13,6 +13,20 @@ describe("authentication DTO validation", () => {
     ).toBe(true);
   });
 
+  it("accepts optional professional details", () => {
+    expect(
+      registerSchema.safeParse({
+        email: "developer@example.com",
+        username: "queen_dev",
+        password: "StrongPass1",
+        programmingLanguages: ["TypeScript", "Python"],
+        githubUrl: "https://github.com/queen_dev",
+        yearsOfExperience: 3,
+        jobTitle: "Engineer",
+      }).success,
+    ).toBe(true);
+  });
+
   it("rejects weak registration passwords", () => {
     expect(
       registerSchema.safeParse({

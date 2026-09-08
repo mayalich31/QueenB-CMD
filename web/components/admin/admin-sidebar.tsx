@@ -26,8 +26,8 @@ export function AdminSidebar() {
           <Link
             className={`block rounded-lg px-3 py-2 text-sm font-medium ${
               isActive
-                ? "bg-amber-50 text-amber-900"
-                : "text-zinc-700 hover:bg-zinc-100"
+                ? "bg-brand/40 text-brand-deep"
+                : "text-zinc-700 hover:bg-brand/25"
             }`}
             href={link.href}
             key={link.href}

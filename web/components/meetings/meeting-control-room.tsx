@@ -70,7 +70,7 @@ export function MeetingControlRoom({
 
   return (
     <div>
-      <p className="text-sm font-medium text-amber-700">
+      <p className="text-sm font-medium text-brand-deep">
         {isMentor ? "Mentor" : "Mentee"}
       </p>
       <h2 className="mt-1 text-2xl font-semibold">{counterpart.username}</h2>
@@ -80,7 +80,7 @@ export function MeetingControlRoom({
           : `Requested ${meeting.createdAt.toLocaleDateString()}`}
       </p>
       <p className="mt-3">
-        <span className="rounded-full bg-amber-50 px-3 py-1 text-sm text-amber-800">
+        <span className="rounded-full bg-brand/35 px-3 py-1 text-sm text-brand-deep">
           {getMeetingStatusLabel(meeting)}
         </span>
       </p>
@@ -115,7 +115,7 @@ export function MeetingControlRoom({
             <form action={requestMoreTimesAction} className="mt-3">
               <input name="meetingId" type="hidden" value={meeting.id} />
               <button
-                className="text-sm font-medium text-amber-700 hover:underline"
+                className="text-sm font-medium text-brand-deep hover:underline"
                 type="submit"
               >
                 None work — request more times
@@ -137,7 +137,7 @@ export function MeetingControlRoom({
             <form action={confirmAction} className="mt-4">
               <input name="meetingId" type="hidden" value={meeting.id} />
               <button
-                className="rounded-lg bg-zinc-950 px-4 py-2 text-sm font-medium text-white hover:bg-zinc-800"
+                className="rounded-lg bg-brand-deep px-4 py-2 text-sm font-medium text-white hover:bg-brand"
                 type="submit"
               >
                 Confirm attendance

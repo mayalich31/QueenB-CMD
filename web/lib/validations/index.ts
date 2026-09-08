@@ -3,6 +3,8 @@ export {
   usernameSchema,
   userCreateSchema,
   userUpdateSchema,
+  userProfileUpdateSchema,
+  optionalProfileFieldsSchema,
   type UserCreateInput,
   type UserUpdateInput,
 } from "./user";

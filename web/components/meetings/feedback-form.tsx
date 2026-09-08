@@ -39,7 +39,7 @@ export function FeedbackForm({
         />
       </label>
       <button
-        className="rounded-lg bg-zinc-950 px-4 py-2 text-sm font-medium text-white hover:bg-zinc-800"
+        className="rounded-lg bg-brand-deep px-4 py-2 text-sm font-medium text-white hover:bg-brand"
         type="submit"
       >
         Submit feedback

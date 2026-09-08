@@ -43,10 +43,7 @@ export async function listAvailableMentors({
     orderBy: { createdAt: "desc" },
   });
 
-  return mentors.filter(
-    (mentor) =>
-      mentor.user._count.mentorMeetings < mentor.maxConcurrentMeetings,
-  );
+  return mentors;
 }
 
 export function createMentorProfile(data: MentorProfileCreateInput) {

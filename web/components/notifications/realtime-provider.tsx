@@ -20,6 +20,7 @@ export type NotificationItem = {
   meetingId: string | null;
   type: NotificationType;
   href: string | null;
+  message: string | null;
   readAt: string | null;
   dedupeKey: string;
   createdAt: string;
@@ -51,7 +52,22 @@ function parseRealtimeNotification(value: Record<string, unknown>) {
     return null;
   }
 
-  return value as NotificationItem;
+  return {
+    ...value,
+    meetingId:
+      typeof value.meetingId === "string" || value.meetingId === null
+        ? value.meetingId
+        : null,
+    href: typeof value.href === "string" || value.href === null ? value.href : null,
+    message:
+      typeof value.message === "string" || value.message === null
+        ? value.message
+        : null,
+    readAt:
+      typeof value.readAt === "string" || value.readAt === null
+        ? value.readAt
+        : null,
+  } as NotificationItem;
 }
 
 export function NotificationRealtimeProvider({

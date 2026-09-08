@@ -21,7 +21,7 @@ import {
 
 const weekdayLabels = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 const CELL_HOVER =
-  "hover:z-10 hover:ring-2 hover:ring-inset hover:ring-amber-600";
+  "hover:z-10 hover:ring-2 hover:ring-inset hover:ring-brand-deep";
 
 export type CalendarSlotEvent = {
   meetingId: string;
@@ -75,13 +75,13 @@ export function MeetingWeekGrid({
         </p>
         <div className="flex gap-2 text-sm">
           <Link
-            className="rounded-lg px-3 py-2 hover:bg-zinc-100"
+            className="rounded-lg px-3 py-2 hover:bg-brand/25"
             href={hrefForWeek(basePath, previous, extraQuery)}
           >
             Previous
           </Link>
           <Link
-            className="rounded-lg px-3 py-2 hover:bg-zinc-100"
+            className="rounded-lg px-3 py-2 hover:bg-brand/25"
             href={hrefForWeek(basePath, next, extraQuery)}
           >
             Next
@@ -93,10 +93,10 @@ export function MeetingWeekGrid({
           className="grid min-w-[52rem] gap-px bg-zinc-200"
           style={{ gridTemplateColumns: "4.5rem repeat(7, minmax(0, 1fr))" }}
         >
-          <div className="bg-zinc-50" />
+          <div className="bg-cream" />
           {days.map((day, index) => (
             <div
-              className="bg-zinc-50 px-1 py-2 text-center text-xs font-medium text-zinc-600"
+              className="bg-cream px-1 py-2 text-center text-xs font-medium text-zinc-600"
               key={day.toISOString()}
             >
               {weekdayLabels[index]} {day.getDate()}
@@ -130,7 +130,7 @@ function HourRow({
 }) {
   return (
     <>
-      <div className="bg-white px-1 py-2 text-right text-xs text-zinc-500">
+      <div className="bg-cream-card px-1 py-2 text-right text-xs text-zinc-500">
         {formatHourLabel(hour)}
       </div>
       {days.map((day) => {
@@ -139,7 +139,7 @@ function HourRow({
         );
 
         return (
-          <div className="bg-white" key={`${day.toISOString()}-${hour.getHours()}`}>
+          <div className="bg-cream-card" key={`${day.toISOString()}-${hour.getHours()}`}>
             {cells.map((cell) => {
               const event = events.find((entry) =>
                 cellOverlapsInterval(
@@ -172,8 +172,8 @@ function HourRow({
                           <span
                             className={`shrink-0 rounded px-1 text-[9px] font-semibold uppercase ${
                               event.role === "mentor"
-                                ? "bg-zinc-950 text-white"
-                                : "bg-white/80 text-zinc-800"
+                                ? "bg-brand-deep text-white"
+                                : "bg-cream-card/80 text-zinc-800"
                             }`}
                           >
                             {event.role === "mentor" ? "Mentor" : "Mentee"}

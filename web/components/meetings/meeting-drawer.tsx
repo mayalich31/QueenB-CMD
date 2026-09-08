@@ -17,7 +17,7 @@ export function MeetingDrawer({
         type="button"
         onClick={() => router.back()}
       />
-      <aside className="relative flex h-full w-full max-w-md flex-col overflow-y-auto bg-white p-6 shadow-xl">
+      <aside className="relative flex h-full w-full max-w-md flex-col overflow-y-auto bg-cream-card p-6 shadow-xl">
         <button
           className="mb-4 self-end text-sm text-zinc-600 hover:underline"
           type="button"

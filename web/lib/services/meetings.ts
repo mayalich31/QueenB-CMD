@@ -40,7 +40,8 @@ import {
   InvalidMeetingTransitionError,
 } from "./meeting-state-machine";
 import { assertUserCanRequestMeetings } from "./enforcement";
-import { notifyMeetingUsers } from "./notifications";
+import { formatMentorThankYouMessage } from "@/lib/notifications/presentation";
+import { createNotification, notifyMeetingUsers } from "./notifications";
 import { runSerializableTransaction } from "./transaction";
 
 export class MeetingNotFoundError extends Error {
@@ -489,6 +490,20 @@ export async function answerMeetingOutcomeForParticipant(
         "outcome-verified",
         cycle,
       );
+      const menteeUsername = meeting.mentee?.username;
+      if (menteeUsername) {
+        await createNotification(
+          {
+            userId: meeting.mentorId,
+            meetingId: meeting.id,
+            type: NotificationType.MENTOR_THANK_YOU,
+            href: "/dashboard/mentor",
+            message: formatMentorThankYouMessage(menteeUsername),
+            dedupeKey: `meeting:${meeting.id}:mentor-thank-you:cycle:${cycle}:user:${meeting.mentorId}`,
+          },
+          transaction,
+        );
+      }
       return resolvedVerification;
     }
 

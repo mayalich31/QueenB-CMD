@@ -36,7 +36,7 @@ export default async function AdminMeetingsPage({
 
   return (
     <section>
-      <p className="text-sm font-medium text-amber-700">Admin</p>
+      <p className="text-sm font-medium text-brand-deep">Admin</p>
       <h1 className="mt-2 text-3xl font-semibold">Meetings report</h1>
       <p className="mt-3 max-w-2xl text-zinc-600">
         Filter every meeting by status or participant using URL search
@@ -47,7 +47,7 @@ export default async function AdminMeetingsPage({
         <label className="text-sm text-zinc-700">
           Status
           <select
-            className="ml-2 rounded-lg border border-zinc-300 bg-white px-3 py-2"
+            className="ml-2 rounded-lg border border-zinc-300 bg-cream-card px-3 py-2"
             defaultValue={filters.status ?? ""}
             name="status"
           >
@@ -70,7 +70,7 @@ export default async function AdminMeetingsPage({
           />
         </label>
         <button
-          className="rounded-lg bg-amber-700 px-4 py-2 text-sm font-medium text-white"
+          className="rounded-lg bg-brand-deep px-4 py-2 text-sm font-medium text-white"
           type="submit"
         >
           Filter
@@ -83,9 +83,9 @@ export default async function AdminMeetingsPage({
         </p>
       )}
 
-      <div className="mt-6 overflow-x-auto rounded-2xl border border-zinc-200 bg-white">
+      <div className="mt-6 overflow-x-auto rounded-2xl border border-brand/30 bg-cream-card">
         <table className="min-w-full text-left text-sm">
-          <thead className="border-b border-zinc-200 bg-zinc-50 text-zinc-600">
+          <thead className="border-b border-brand/30 bg-cream text-zinc-600">
             <tr>
               <th className="px-4 py-3 font-medium">Participants</th>
               <th className="px-4 py-3 font-medium">Status</th>
@@ -105,7 +105,7 @@ export default async function AdminMeetingsPage({
                 <tr className="border-t border-zinc-100" key={meeting.id}>
                   <td className="px-4 py-3">
                     <Link
-                      className="font-medium text-amber-800 hover:underline"
+                      className="font-medium text-brand-deep hover:underline"
                       href={`/admin/meetings/${meeting.id}`}
                     >
                       {meeting.mentee.username} / {meeting.mentor.username}

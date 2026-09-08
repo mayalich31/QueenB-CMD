@@ -9,6 +9,7 @@ export type NotificationCreateData = {
   meetingId?: string;
   type: NotificationType;
   href?: string;
+  message?: string;
   dedupeKey: string;
 };
 

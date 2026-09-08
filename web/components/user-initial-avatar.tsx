@@ -9,7 +9,7 @@ export function UserInitialAvatar({ name }: { name: string }) {
   return (
     <span
       aria-hidden="true"
-      className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-amber-700 text-sm font-semibold text-white"
+      className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-brand-deep text-sm font-semibold text-white"
       title={name}
     >
       {initial}

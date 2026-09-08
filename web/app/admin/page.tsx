@@ -23,7 +23,7 @@ export default async function AdminSummaryPage() {
 
   return (
     <section>
-      <p className="text-sm font-medium text-amber-700">Admin</p>
+      <p className="text-sm font-medium text-brand-deep">Admin</p>
       <h1 className="mt-2 text-3xl font-semibold">General summary</h1>
       <p className="mt-3 max-w-2xl text-zinc-600">
         Snapshot of users, meetings, and open alerts across Queens Match.
@@ -57,9 +57,9 @@ export default async function AdminSummaryPage() {
       </div>
 
       <h2 className="mt-10 text-lg font-semibold">Meetings by status</h2>
-      <div className="mt-4 overflow-x-auto rounded-2xl border border-zinc-200 bg-white">
+      <div className="mt-4 overflow-x-auto rounded-2xl border border-brand/30 bg-cream-card">
         <table className="min-w-full text-left text-sm">
-          <thead className="border-b border-zinc-200 bg-zinc-50 text-zinc-600">
+          <thead className="border-b border-brand/30 bg-cream text-zinc-600">
             <tr>
               <th className="px-4 py-3 font-medium">Status</th>
               <th className="px-4 py-3 font-medium">Count</th>
@@ -109,7 +109,7 @@ function SummaryCard({
 }) {
   return (
     <Link
-      className="rounded-2xl border border-zinc-200 bg-white p-5 hover:border-amber-300"
+      className="rounded-2xl border border-brand/30 bg-cream-card p-5 hover:border-brand"
       href={href}
     >
       <p className="text-sm text-zinc-600">{label}</p>

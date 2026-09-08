@@ -33,11 +33,11 @@ export default async function MeetingPage({ params }: MeetingPageProps) {
     meeting.mentorId === userId ? "/dashboard/mentor" : "/dashboard/profile";
 
   return (
-    <main className="mx-auto min-h-screen max-w-2xl bg-zinc-50 px-4 py-8 text-zinc-950">
-      <Link className="text-sm font-medium text-amber-800 hover:underline" href={backHref}>
+    <main className="mx-auto min-h-screen max-w-2xl bg-cream px-4 py-8 text-zinc-950">
+      <Link className="text-sm font-medium text-brand-deep hover:underline" href={backHref}>
         Back to workspace
       </Link>
-      <div className="mt-6 rounded-2xl border border-zinc-200 bg-white p-6">
+      <div className="mt-6 rounded-2xl border border-brand/30 bg-cream-card p-6">
         <MeetingControlRoom meeting={meeting} userId={userId} />
       </div>
     </main>

@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
 import { saveMentorProfile } from "@/lib/services/mentor-profiles";
+import { updateUser } from "@/lib/services/users";
 import {
   cancelMeetingForParticipant,
   confirmMeetingAttendanceForParticipant,
@@ -12,6 +13,11 @@ import {
 } from "@/lib/services/meetings";
 import { createClient } from "@/lib/supabase/server";
 import { mentorProfileFormSchema } from "@/lib/validations/mentor-profile";
+import {
+  parseOptionalProfileFormData,
+  userProfileUpdateSchema,
+} from "@/lib/validations/user";
+import { findMentorProfile } from "@/lib/dal/mentor-profiles";
 
 async function authenticatedUserId() {
   const supabase = await createClient();
@@ -143,7 +149,34 @@ export async function saveMentorProfileAction(formData: FormData) {
     );
   }
 
+  const alreadyMentor = Boolean(await findMentorProfile(userId));
   await saveMentorProfile(userId, result.data);
   revalidateMeetingViews();
-  profileSuccess("Mentor profile saved.");
+  profileSuccess(
+    alreadyMentor
+      ? "Mentor profile saved."
+      : "You are now a mentor. Mentor details appear when you edit your profile.",
+  );
+}
+
+export async function saveUserProfileAction(formData: FormData) {
+  const userId = await authenticatedUserId();
+
+  if (!userId) {
+    redirect("/login");
+  }
+
+  const result = userProfileUpdateSchema.safeParse(
+    parseOptionalProfileFormData(formData),
+  );
+
+  if (!result.success) {
+    profileError(
+      result.error.issues[0]?.message ?? "The profile details are invalid.",
+    );
+  }
+
+  await updateUser(userId, result.data);
+  revalidateMeetingViews();
+  profileSuccess("Profile details saved.");
 }

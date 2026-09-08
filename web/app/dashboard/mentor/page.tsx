@@ -75,8 +75,7 @@ export default async function MentorDashboardPage({
 
   return (
     <section>
-      <p className="text-sm font-medium text-amber-700">Mentor workspace</p>
-      <h1 className="mt-2 text-3xl font-semibold">Requests</h1>
+      <h1 className="text-3xl font-semibold">Requests</h1>
       <p className="mt-3 max-w-2xl text-zinc-600">
         Review pending requests. Choose times to open the calendar, or reject a
         request.
@@ -111,8 +110,8 @@ export default async function MentorDashboardPage({
                 <article
                   className={`rounded-xl border p-5 ${
                     isSelected
-                      ? "border-amber-400 bg-amber-50"
-                      : "border-zinc-200 bg-white"
+                      ? "border-brand-deep bg-brand/35"
+                      : "border-brand/30 bg-cream-card"
                   }`}
                   key={request.id}
                 >
@@ -122,7 +121,7 @@ export default async function MentorDashboardPage({
                   </p>
                   <div className="mt-4 flex flex-wrap gap-2">
                     <Link
-                      className="rounded-lg bg-zinc-950 px-4 py-2 text-sm font-medium text-white hover:bg-zinc-800"
+                      className="rounded-lg bg-brand-deep px-4 py-2 text-sm font-medium text-white hover:bg-brand"
                       href={chooseHref}
                     >
                       Choose times

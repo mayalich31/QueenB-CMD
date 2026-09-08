@@ -1,6 +1,6 @@
 import Link from "next/link";
 
-import { requestMeetingAction } from "@/app/dashboard/actions";
+import { MentorCard } from "@/components/mentors/mentor-card";
 import {
   MENTORING_TOPIC_LABELS,
   MENTORING_TOPIC_VALUES,
@@ -44,15 +44,14 @@ export async function MentorDirectory({
     <section>
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
-          <p className="text-sm font-medium text-amber-700">Mentor discovery</p>
-          <h1 className="mt-2 text-3xl font-semibold">Find your next mentor</h1>
+          <h1 className="text-3xl font-semibold">Find your next mentor</h1>
           <p className="mt-3 text-zinc-600">
             Browse available mentors and filter by every topic you need.
           </p>
         </div>
         {topics.length > 0 ? (
           <Link
-            className="text-sm font-medium text-amber-700 hover:underline"
+            className="text-sm font-medium text-brand-deep hover:underline"
             href="/dashboard"
           >
             Clear filters
@@ -72,7 +71,7 @@ export async function MentorDirectory({
       ) : null}
 
       <form
-        className="mt-8 rounded-2xl border border-zinc-200 bg-white p-5"
+        className="mt-8 rounded-2xl border border-brand/30 bg-cream-card p-5"
         method="get"
       >
         <fieldset>
@@ -97,7 +96,7 @@ export async function MentorDirectory({
           </div>
         </fieldset>
         <button
-          className="mt-4 rounded-lg bg-zinc-950 px-4 py-2 text-sm font-medium text-white hover:bg-zinc-800"
+          className="mt-4 rounded-lg bg-brand-deep px-4 py-2 text-sm font-medium text-white hover:bg-brand"
           type="submit"
         >
           Apply filters
@@ -105,62 +104,34 @@ export async function MentorDirectory({
       </form>
 
       {mentors.length > 0 ? (
-        <div className="mt-8 grid gap-5 md:grid-cols-2">
-          {mentors.map((mentor) => (
-            <article
-              className="rounded-2xl border border-zinc-200 bg-white p-6"
-              key={mentor.userId}
-            >
-              <div className="flex items-start justify-between gap-4">
-                <div>
-                  <h2 className="text-xl font-semibold">
-                    {mentor.user.username}
-                  </h2>
-                  <p className="mt-1 text-sm text-zinc-500">
-                    {mentor.meetingDurationMinutes}-minute meetings
-                  </p>
-                </div>
-                <span className="rounded-full bg-emerald-50 px-3 py-1 text-xs font-medium text-emerald-700">
-                  {mentor.maxConcurrentMeetings -
-                    mentor.user._count.mentorMeetings}{" "}
-                  spots
-                </span>
-              </div>
-              <p className="mt-4 text-sm leading-6 text-zinc-700">
-                {mentor.background}
-              </p>
-              <div className="mt-5 flex flex-wrap gap-2">
-                {mentor.topics.map((topic) => {
-                  const result = mentoringTopicSchema.safeParse(topic);
-                  return (
-                    <span
-                      className="rounded-full bg-zinc-100 px-3 py-1 text-xs text-zinc-700"
-                      key={topic}
-                    >
-                      {result.success
-                        ? MENTORING_TOPIC_LABELS[result.data]
-                        : topic}
-                    </span>
-                  );
-                })}
-              </div>
-              <form action={requestMeetingAction} className="mt-6">
-                <input name="mentorId" type="hidden" value={mentor.userId} />
-                <button
-                  className="w-full rounded-lg bg-zinc-950 px-4 py-2.5 text-sm font-medium text-white hover:bg-zinc-800 disabled:cursor-not-allowed disabled:bg-zinc-400"
-                  disabled={isSoftBlocked}
-                  title={
-                    isSoftBlocked
-                      ? "Submit overdue feedback before requesting another meeting."
-                      : undefined
-                  }
-                  type="submit"
-                >
-                  Request meeting
-                </button>
-              </form>
-            </article>
-          ))}
+        <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {mentors.map((mentor) => {
+            const remainingSpots =
+              mentor.maxConcurrentMeetings - mentor.user._count.mentorMeetings;
+
+            return (
+              <MentorCard
+                details={{
+                  background: mentor.background,
+                  githubUrl: mentor.user.githubUrl,
+                  jobTitle: mentor.user.jobTitle,
+                  linkedinUrl: mentor.user.linkedinUrl,
+                  maxConcurrentMeetings: mentor.maxConcurrentMeetings,
+                  programmingLanguages: mentor.user.programmingLanguages,
+                  techStack: mentor.user.techStack,
+                  workplace: mentor.user.workplace,
+                  yearsOfExperience: mentor.user.yearsOfExperience,
+                }}
+                isSoftBlocked={isSoftBlocked}
+                key={mentor.userId}
+                meetingDurationMinutes={mentor.meetingDurationMinutes}
+                mentorId={mentor.userId}
+                remainingSpots={remainingSpots}
+                topics={mentor.topics}
+                username={mentor.user.username}
+              />
+            );
+          })}
         </div>
       ) : (
         <div className="mt-8 rounded-2xl border border-dashed border-zinc-300 p-10 text-center text-zinc-600">

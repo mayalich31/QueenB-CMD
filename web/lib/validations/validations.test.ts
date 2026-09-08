@@ -28,6 +28,18 @@ describe("core DTO validation", () => {
     ).toEqual({ email: "developer@example.com" });
   });
 
+  it("accepts optional profile field updates", () => {
+    expect(
+      userUpdateSchema.parse({
+        programmingLanguages: ["Java"],
+        githubUrl: "https://github.com/maya",
+      }),
+    ).toEqual({
+      programmingLanguages: ["Java"],
+      githubUrl: "https://github.com/maya",
+    });
+  });
+
   it("rejects meetings where the mentor and mentee are the same user", () => {
     expect(
       meetingCreateSchema.safeParse({

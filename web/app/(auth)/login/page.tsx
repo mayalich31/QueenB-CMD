@@ -1,5 +1,6 @@
 import Link from "next/link";
 
+import { PublicSiteHeader } from "@/components/brand-lockup";
 import { login } from "../actions";
 
 type LoginPageProps = {
@@ -13,12 +14,11 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
   const { error, message } = await searchParams;
 
   return (
-    <main className="flex min-h-screen items-center justify-center bg-zinc-50 px-4">
-      <section className="w-full max-w-md rounded-2xl border border-zinc-200 bg-white p-8 shadow-sm">
-        <p className="text-sm font-semibold tracking-widest text-amber-700">
-          QUEENS MATCH
-        </p>
-        <h1 className="mt-2 text-3xl font-semibold text-zinc-950">Sign in</h1>
+    <div className="flex min-h-screen flex-col bg-cream">
+      <PublicSiteHeader />
+      <main className="flex flex-1 items-center justify-center px-4 py-12">
+      <section className="w-full max-w-md rounded-2xl border border-brand/30 bg-cream-card p-8 shadow-sm">
+        <h1 className="text-3xl font-semibold text-zinc-950">Sign in</h1>
         <p className="mt-2 text-sm text-zinc-600">
           Continue to your mentoring workspace.
         </p>
@@ -38,7 +38,7 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
           <label className="block text-sm font-medium text-zinc-800">
             Email
             <input
-              className="mt-2 w-full rounded-lg border border-zinc-300 px-3 py-2 outline-none focus:border-amber-600"
+              className="mt-2 w-full rounded-lg border border-zinc-300 px-3 py-2 outline-none focus:border-brand-deep"
               name="email"
               type="email"
               autoComplete="email"
@@ -48,7 +48,7 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
           <label className="block text-sm font-medium text-zinc-800">
             Password
             <input
-              className="mt-2 w-full rounded-lg border border-zinc-300 px-3 py-2 outline-none focus:border-amber-600"
+              className="mt-2 w-full rounded-lg border border-zinc-300 px-3 py-2 outline-none focus:border-brand-deep"
               name="password"
               type="password"
               autoComplete="current-password"
@@ -56,7 +56,7 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
             />
           </label>
           <button
-            className="w-full rounded-lg bg-zinc-950 px-4 py-2.5 font-medium text-white hover:bg-zinc-800"
+            className="w-full rounded-lg bg-brand-deep px-4 py-2.5 font-medium text-white hover:bg-brand"
             type="submit"
           >
             Sign in
@@ -65,11 +65,12 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
 
         <p className="mt-6 text-center text-sm text-zinc-600">
           New to Queens Match?{" "}
-          <Link className="font-medium text-amber-700 hover:underline" href="/register">
+          <Link className="font-medium text-brand-deep hover:underline" href="/register">
             Create an account
           </Link>
         </p>
       </section>
-    </main>
+      </main>
+    </div>
   );
 }

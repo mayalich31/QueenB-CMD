@@ -25,7 +25,7 @@ export default async function AdminUsersPage({
 
   return (
     <section>
-      <p className="text-sm font-medium text-amber-700">Admin</p>
+      <p className="text-sm font-medium text-brand-deep">Admin</p>
       <h1 className="mt-2 text-3xl font-semibold">User directory</h1>
       <p className="mt-3 max-w-2xl text-zinc-600">
         Paginated users with emails and completed mentoring session counts.
@@ -43,16 +43,16 @@ export default async function AdminUsersPage({
           />
         </label>
         <button
-          className="rounded-lg bg-amber-700 px-4 py-2 text-sm font-medium text-white"
+          className="rounded-lg bg-brand-deep px-4 py-2 text-sm font-medium text-white"
           type="submit"
         >
           Search
         </button>
       </form>
 
-      <div className="mt-6 overflow-x-auto rounded-2xl border border-zinc-200 bg-white">
+      <div className="mt-6 overflow-x-auto rounded-2xl border border-brand/30 bg-cream-card">
         <table className="min-w-full text-left text-sm">
-          <thead className="border-b border-zinc-200 bg-zinc-50 text-zinc-600">
+          <thead className="border-b border-brand/30 bg-cream text-zinc-600">
             <tr>
               <th className="px-4 py-3 font-medium">User</th>
               <th className="px-4 py-3 font-medium">Email</th>
@@ -73,7 +73,7 @@ export default async function AdminUsersPage({
                 <tr className="border-t border-zinc-100" key={user.id}>
                   <td className="px-4 py-3">
                     <Link
-                      className="font-medium text-amber-800 hover:underline"
+                      className="font-medium text-brand-deep hover:underline"
                       href={`/admin/users/${user.id}`}
                     >
                       {user.username}

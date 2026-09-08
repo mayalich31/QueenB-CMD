@@ -42,7 +42,7 @@ export function AdminPagination({
     >
       {page > 1 ? (
         <Link
-          className="rounded-lg px-3 py-2 hover:bg-zinc-100"
+          className="rounded-lg px-3 py-2 hover:bg-brand/25"
           href={hrefForPage(basePath, page - 1, params)}
         >
           Previous
@@ -55,7 +55,7 @@ export function AdminPagination({
       </span>
       {page < pageCount ? (
         <Link
-          className="rounded-lg px-3 py-2 hover:bg-zinc-100"
+          className="rounded-lg px-3 py-2 hover:bg-brand/25"
           href={hrefForPage(basePath, page + 1, params)}
         >
           Next

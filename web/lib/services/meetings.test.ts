@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { MeetingStatus } from "@/lib/generated/prisma/enums";
+import { MeetingStatus, NotificationType } from "@/lib/generated/prisma/enums";
 
 const mocks = vi.hoisted(() => ({
   clearMeetingSlots: vi.fn(),
@@ -40,10 +40,13 @@ vi.mock("./transaction", () => ({
   ),
 }));
 
-vi.mock("./notifications", () => ({
+const notificationMocks = vi.hoisted(() => ({
+  createNotification: vi.fn().mockResolvedValue({}),
   createNotifications: vi.fn().mockResolvedValue({ count: 1 }),
   notifyMeetingUsers: vi.fn().mockResolvedValue({ count: 1 }),
 }));
+
+vi.mock("./notifications", () => notificationMocks);
 
 import {
   answerMeetingOutcomeForParticipant,
@@ -163,6 +166,7 @@ describe("meeting verification services", () => {
     completedAt: new Date("2026-09-07T13:00:00.000Z"),
     mentorAttendanceConfirmedAt: new Date("2026-09-07T11:00:00.000Z"),
     menteeAttendanceConfirmedAt: new Date("2026-09-07T11:05:00.000Z"),
+    mentee: { id: "mentee-id", username: "nina" },
   };
   const verification = {
     id: "verification-id",
@@ -208,6 +212,14 @@ describe("meeting verification services", () => {
       expect.anything(),
     );
     expect(mocks.updateMeetingState).not.toHaveBeenCalled();
+    expect(notificationMocks.createNotification).toHaveBeenCalledWith(
+      expect.objectContaining({
+        userId: "mentor-id",
+        type: NotificationType.MENTOR_THANK_YOU,
+        message: "Thank you for contributing your time to meet with 'nina'",
+      }),
+      expect.anything(),
+    );
   });
 
   it("keeps the same answer idempotent and rejects changing it", async () => {

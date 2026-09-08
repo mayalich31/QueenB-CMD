@@ -24,7 +24,7 @@ export default async function AdminMeetingDetailPage({
 
   return (
     <section>
-      <p className="text-sm font-medium text-amber-700">Admin</p>
+      <p className="text-sm font-medium text-brand-deep">Admin</p>
       <h1 className="mt-2 text-3xl font-semibold">Meeting detail</h1>
       <p className="mt-3 text-zinc-600">
         <span
@@ -34,12 +34,12 @@ export default async function AdminMeetingDetailPage({
         </span>
       </p>
 
-      <dl className="mt-8 grid gap-4 rounded-2xl border border-zinc-200 bg-white p-5 text-sm sm:grid-cols-2">
+      <dl className="mt-8 grid gap-4 rounded-2xl border border-brand/30 bg-cream-card p-5 text-sm sm:grid-cols-2">
         <div>
           <dt className="text-zinc-500">Mentee</dt>
           <dd className="mt-1 font-medium">
             <Link
-              className="text-amber-800 hover:underline"
+              className="text-brand-deep hover:underline"
               href={`/admin/users/${meeting.mentee.id}`}
             >
               {meeting.mentee.username}
@@ -51,7 +51,7 @@ export default async function AdminMeetingDetailPage({
           <dt className="text-zinc-500">Mentor</dt>
           <dd className="mt-1 font-medium">
             <Link
-              className="text-amber-800 hover:underline"
+              className="text-brand-deep hover:underline"
               href={`/admin/users/${meeting.mentor.id}`}
             >
               {meeting.mentor.username}
@@ -96,7 +96,7 @@ export default async function AdminMeetingDetailPage({
         <ul className="mt-3 space-y-2 text-sm">
           {meeting.slots.map((slot) => (
             <li
-              className="rounded-xl border border-zinc-200 bg-white px-4 py-3"
+              className="rounded-xl border border-brand/30 bg-cream-card px-4 py-3"
               key={slot.id}
             >
               {formatUtcDateTime(slot.startsAt)} – {formatUtcDateTime(slot.endsAt)}
@@ -115,7 +115,7 @@ export default async function AdminMeetingDetailPage({
         <ul className="mt-3 space-y-2 text-sm">
           {meeting.verifications.map((verification) => (
             <li
-              className="rounded-xl border border-zinc-200 bg-white px-4 py-3"
+              className="rounded-xl border border-brand/30 bg-cream-card px-4 py-3"
               key={verification.id}
             >
               <p>Cycle {verification.cycle}</p>
@@ -141,7 +141,7 @@ export default async function AdminMeetingDetailPage({
         <ul className="mt-3 space-y-2 text-sm">
           {meeting.feedback.map((entry) => (
             <li
-              className="rounded-xl border border-zinc-200 bg-white px-4 py-3"
+              className="rounded-xl border border-brand/30 bg-cream-card px-4 py-3"
               key={entry.id}
             >
               <p className="font-medium">

@@ -18,16 +18,17 @@ export function NotificationToastHost() {
         const presentation = getNotificationPresentation(
           toast.type,
           toast.href,
+          toast.message,
         );
         return (
           <div
-            className="pointer-events-auto rounded-xl border border-zinc-200 bg-white p-4 shadow-xl"
+            className="pointer-events-auto rounded-xl border border-brand/30 bg-cream-card p-4 shadow-xl"
             key={toast.toastId}
             role="status"
           >
             <div className="flex items-start gap-3">
               <Link
-                className="min-w-0 flex-1 rounded focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber-700"
+                className="min-w-0 flex-1 rounded focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-deep"
                 href={presentation.href}
                 onClick={() => {
                   dismissToast(toast.toastId);
@@ -43,7 +44,7 @@ export function NotificationToastHost() {
               </Link>
               <button
                 aria-label="Dismiss notification"
-                className="rounded p-1 text-zinc-500 hover:bg-zinc-100 focus-visible:outline-2 focus-visible:outline-amber-700"
+                className="rounded p-1 text-zinc-500 hover:bg-brand/25 focus-visible:outline-2 focus-visible:outline-brand-deep"
                 onClick={() => dismissToast(toast.toastId)}
                 type="button"
               >

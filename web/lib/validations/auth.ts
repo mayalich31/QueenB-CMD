@@ -1,6 +1,10 @@
 import { z } from "zod";
 
-import { emailSchema, usernameSchema } from "./user";
+import {
+  emailSchema,
+  optionalProfileFieldsSchema,
+  usernameSchema,
+} from "./user";
 
 const passwordSchema = z
   .string()
@@ -15,11 +19,13 @@ export const loginSchema = z.object({
   password: z.string().min(1, "Password is required."),
 });
 
-export const registerSchema = z.object({
-  email: emailSchema,
-  username: usernameSchema,
-  password: passwordSchema,
-});
+export const registerSchema = z
+  .object({
+    email: emailSchema,
+    username: usernameSchema,
+    password: passwordSchema,
+  })
+  .and(optionalProfileFieldsSchema);
 
 export type LoginInput = z.infer<typeof loginSchema>;
 export type RegisterInput = z.infer<typeof registerSchema>;
