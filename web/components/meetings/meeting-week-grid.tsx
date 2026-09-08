@@ -90,7 +90,7 @@ export function MeetingWeekGrid({
       </div>
       <div className="overflow-x-auto rounded-2xl border border-zinc-200">
         <div
-          className="grid min-w-[52rem] gap-px bg-zinc-200"
+          className="grid min-w-[52rem] gap-x-px gap-y-0 bg-zinc-200"
           style={{ gridTemplateColumns: "4.5rem repeat(7, minmax(0, 1fr))" }}
         >
           <div className="bg-table-header" />
@@ -139,7 +139,7 @@ function HourRow({
         );
 
         return (
-          <div className="bg-cream-card" key={`${day.toISOString()}-${hour.getHours()}`}>
+          <div className="overflow-visible bg-cream-card" key={`${day.toISOString()}-${hour.getHours()}`}>
             {cells.map((cell) => {
               const event = events.find((entry) =>
                 cellOverlapsInterval(
@@ -189,7 +189,7 @@ function HourRow({
 
               if (emptyCell) {
                 return (
-                  <div className="h-7" key={cell.toISOString()}>
+                  <div className="relative h-7 overflow-visible" key={cell.toISOString()}>
                     {emptyCell(cell)}
                   </div>
                 );

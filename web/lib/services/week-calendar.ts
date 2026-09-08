@@ -62,14 +62,21 @@ export function slotIntervalFromCell(cellStart: Date, durationMinutes: number) {
   };
 }
 
-export function cellCoveredByPaintedSlot(
+export function isPaintedSlotStart(cell: Date, slotStartIso: string) {
+  return new Date(slotStartIso).getTime() === cell.getTime();
+}
+
+export function isPaintedSlotEnd(
   cell: Date,
   slotStartIso: string,
   durationMinutes: number,
+  cellMinutes = CALENDAR_CELL_MINUTES,
 ) {
-  const start = new Date(slotStartIso);
-  const end = new Date(start.getTime() + durationMinutes * 60_000);
-  return cellOverlapsInterval(cell, start, end);
+  const start = new Date(slotStartIso).getTime();
+  const end = start + durationMinutes * 60_000;
+  const cellStart = cell.getTime();
+  const cellEnd = cellStart + cellMinutes * 60_000;
+  return cellStart < end && cellEnd >= end;
 }
 
 export function cellOverlapsInterval(
@@ -80,6 +87,16 @@ export function cellOverlapsInterval(
 ) {
   const cellEnd = new Date(cellStart.getTime() + cellMinutes * 60_000);
   return intervalStart < cellEnd && intervalEnd > cellStart;
+}
+
+export function cellCoveredByPaintedSlot(
+  cell: Date,
+  slotStartIso: string,
+  durationMinutes: number,
+) {
+  const start = new Date(slotStartIso);
+  const end = new Date(start.getTime() + durationMinutes * 60_000);
+  return cellOverlapsInterval(cell, start, end);
 }
 
 export function formatHourLabel(date: Date) {

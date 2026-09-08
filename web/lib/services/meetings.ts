@@ -18,6 +18,7 @@ import {
   replaceMeetingSlots,
   updateMeetingVerification,
   updateMeetingState,
+  type DatabaseClient,
 } from "@/lib/dal/meetings";
 import { MeetingStatus, NotificationType } from "@/lib/generated/prisma/enums";
 import {
@@ -313,7 +314,7 @@ export async function confirmMeetingAttendanceForParticipant(
     assertMeetingParticipant(meeting, userId);
 
     if (meeting.status === MeetingStatus.ATTENDANCE_CONFIRMED) {
-      return meeting;
+      return completeConfirmedMeetingIfDue(meeting, transaction, new Date());
     }
 
     if (meeting.status !== MeetingStatus.SCHEDULED) {
@@ -332,7 +333,7 @@ export async function confirmMeetingAttendanceForParticipant(
     const bothConfirmed =
       nextMeeting.mentorAttendanceConfirmedAt &&
       nextMeeting.menteeAttendanceConfirmedAt;
-    const patch = bothConfirmed
+    const attendancePatch = bothConfirmed
       ? {
           ...getMeetingTransitionPatch(
             nextMeeting,
@@ -345,9 +346,41 @@ export async function confirmMeetingAttendanceForParticipant(
           ...confirmationPatch,
         };
 
+    if (
+      bothConfirmed &&
+      nextMeeting.scheduledAt &&
+      nextMeeting.scheduledAt <= confirmedAt
+    ) {
+      const confirmedState = {
+        ...nextMeeting,
+        ...attendancePatch,
+        status: MeetingStatus.ATTENDANCE_CONFIRMED,
+      };
+      const completedMeeting = await updateMeetingState(
+        meeting.id,
+        {
+          ...attendancePatch,
+          ...getMeetingTransitionPatch(
+            confirmedState,
+            MeetingStatus.COMPLETED,
+            confirmedAt,
+          ),
+        },
+        transaction,
+      );
+      await notifyMeetingUsers(
+        transaction,
+        meeting,
+        [meeting.mentorId, meeting.menteeId],
+        NotificationType.MEETING_VERIFICATION_REQUIRED,
+        "verification-required",
+      );
+      return completedMeeting;
+    }
+
     const updatedMeeting = await updateMeetingState(
       meeting.id,
-      patch,
+      attendancePatch,
       transaction,
     );
 
@@ -363,6 +396,34 @@ export async function confirmMeetingAttendanceForParticipant(
 
     return updatedMeeting;
   });
+}
+
+async function completeConfirmedMeetingIfDue(
+  meeting: NonNullable<Awaited<ReturnType<typeof findMeetingById>>>,
+  transaction: DatabaseClient,
+  now: Date,
+) {
+  if (
+    meeting.status !== MeetingStatus.ATTENDANCE_CONFIRMED ||
+    !meeting.scheduledAt ||
+    meeting.scheduledAt > now
+  ) {
+    return meeting;
+  }
+
+  const completedMeeting = await updateMeetingState(
+    meeting.id,
+    getMeetingTransitionPatch(meeting, MeetingStatus.COMPLETED, now),
+    transaction,
+  );
+  await notifyMeetingUsers(
+    transaction,
+    meeting,
+    [meeting.mentorId, meeting.menteeId],
+    NotificationType.MEETING_VERIFICATION_REQUIRED,
+    "verification-required",
+  );
+  return completedMeeting;
 }
 
 export async function cancelMeetingForParticipant(

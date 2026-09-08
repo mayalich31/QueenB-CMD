@@ -88,7 +88,7 @@ export default async function AdminMeetingsPage({
           <thead className="border-b border-brand/30 bg-table-header text-ink">
             <tr>
               <th className="px-4 py-3 font-medium">Participants</th>
-              <th className="px-4 py-3 font-medium">Status</th>
+              <th className="whitespace-nowrap px-4 py-3 font-medium">Status</th>
               <th className="px-4 py-3 font-medium">Scheduled</th>
               <th className="px-4 py-3 font-medium">Updated</th>
             </tr>
@@ -114,9 +114,9 @@ export default async function AdminMeetingsPage({
                       {meeting.mentee.email} · {meeting.mentor.email}
                     </p>
                   </td>
-                  <td className="px-4 py-3">
+                  <td className="whitespace-nowrap px-4 py-3">
                     <span
-                      className={`rounded-full px-2 py-1 text-xs font-medium ${MEETING_STATUS_COLORS[meeting.status]}`}
+                      className={`inline-block whitespace-nowrap rounded-full px-2 py-1 text-xs font-medium ${MEETING_STATUS_COLORS[meeting.status]}`}
                     >
                       {MEETING_STATUS_LABELS[meeting.status]}
                     </span>

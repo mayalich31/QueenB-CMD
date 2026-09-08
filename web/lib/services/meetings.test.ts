@@ -97,6 +97,7 @@ describe("bilateral meeting services", () => {
   it("promotes the meeting after the second confirmation", async () => {
     mocks.findMeetingById.mockResolvedValue({
       ...scheduledMeeting,
+      scheduledAt: new Date("2099-09-07T12:00:00.000Z"),
       mentorAttendanceConfirmedAt: new Date("2026-09-06T12:00:00.000Z"),
     });
 
@@ -110,11 +111,49 @@ describe("bilateral meeting services", () => {
       }),
       expect.anything(),
     );
+    expect(notificationMocks.notifyMeetingUsers).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.anything(),
+      ["mentor-id", "mentee-id"],
+      NotificationType.MEETING_ATTENDANCE_CONFIRMED,
+      "attendance-confirmed",
+    );
   });
 
-  it("is idempotent after both confirmations are recorded", async () => {
+  it("completes immediately when both confirm after the scheduled time", async () => {
+    mocks.findMeetingById.mockResolvedValue({
+      ...scheduledMeeting,
+      scheduledAt: new Date("2020-01-01T12:00:00.000Z"),
+      mentorAttendanceConfirmedAt: new Date("2020-01-01T11:00:00.000Z"),
+    });
+    mocks.updateMeetingState.mockResolvedValue({
+      status: MeetingStatus.COMPLETED,
+    });
+
+    await confirmMeetingAttendanceForParticipant("mentee-id", meetingId);
+
+    expect(mocks.updateMeetingState).toHaveBeenCalledWith(
+      meetingId,
+      expect.objectContaining({
+        status: MeetingStatus.COMPLETED,
+        completedAt: expect.any(Date),
+        menteeAttendanceConfirmedAt: expect.any(Date),
+      }),
+      expect.anything(),
+    );
+    expect(notificationMocks.notifyMeetingUsers).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.anything(),
+      ["mentor-id", "mentee-id"],
+      NotificationType.MEETING_VERIFICATION_REQUIRED,
+      "verification-required",
+    );
+  });
+
+  it("is idempotent after both confirmations are recorded before the start", async () => {
     const confirmedMeeting = {
       ...scheduledMeeting,
+      scheduledAt: new Date("2099-09-07T12:00:00.000Z"),
       status: MeetingStatus.ATTENDANCE_CONFIRMED,
       mentorAttendanceConfirmedAt: new Date("2026-09-06T12:00:00.000Z"),
       menteeAttendanceConfirmedAt: new Date("2026-09-06T12:05:00.000Z"),
@@ -125,6 +164,31 @@ describe("bilateral meeting services", () => {
       confirmMeetingAttendanceForParticipant("mentor-id", meetingId),
     ).resolves.toBe(confirmedMeeting);
     expect(mocks.updateMeetingState).not.toHaveBeenCalled();
+  });
+
+  it("completes a due attendance-confirmed meeting on a later confirm action", async () => {
+    const confirmedMeeting = {
+      ...scheduledMeeting,
+      scheduledAt: new Date("2020-01-01T12:00:00.000Z"),
+      status: MeetingStatus.ATTENDANCE_CONFIRMED,
+      mentorAttendanceConfirmedAt: new Date("2020-01-01T11:00:00.000Z"),
+      menteeAttendanceConfirmedAt: new Date("2020-01-01T11:05:00.000Z"),
+    };
+    mocks.findMeetingById.mockResolvedValue(confirmedMeeting);
+    mocks.updateMeetingState.mockResolvedValue({
+      status: MeetingStatus.COMPLETED,
+    });
+
+    await confirmMeetingAttendanceForParticipant("mentor-id", meetingId);
+
+    expect(mocks.updateMeetingState).toHaveBeenCalledWith(
+      meetingId,
+      expect.objectContaining({
+        status: MeetingStatus.COMPLETED,
+        completedAt: expect.any(Date),
+      }),
+      expect.anything(),
+    );
   });
 
   it("allows a participant to cancel and clears confirmations", async () => {

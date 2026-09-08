@@ -8,6 +8,8 @@ import {
   localDayCells,
   localWeekDays,
   parseWeekParam,
+  isPaintedSlotEnd,
+  isPaintedSlotStart,
   shiftWeek,
   slotIntervalFromCell,
   startOfLocalWeek,
@@ -80,5 +82,8 @@ describe("local week calendar helpers", () => {
     expect(cellCoveredByPaintedSlot(new Date(2026, 8, 8, 11, 30, 0), start, 90)).toBe(
       false,
     );
+    expect(isPaintedSlotStart(new Date(2026, 8, 8, 10, 0, 0), start)).toBe(true);
+    expect(isPaintedSlotEnd(new Date(2026, 8, 8, 11, 0, 0), start, 90)).toBe(true);
+    expect(isPaintedSlotEnd(new Date(2026, 8, 8, 10, 0, 0), start, 90)).toBe(false);
   });
 });

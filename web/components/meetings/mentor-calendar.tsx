@@ -6,7 +6,7 @@ import { useMemo, useState } from "react";
 import { proposeMeetingSlotsAction } from "@/app/dashboard/mentor/actions";
 import { MeetingWeekGrid } from "@/components/meetings/meeting-week-grid";
 import { SlotProposalForm } from "@/components/meetings/slot-proposal-form";
-import { slotIntervalFromCell, cellCoveredByPaintedSlot } from "@/lib/services/week-calendar";
+import { slotIntervalFromCell, cellCoveredByPaintedSlot, isPaintedSlotStart, isPaintedSlotEnd } from "@/lib/services/week-calendar";
 
 import type { CalendarSlotEvent } from "./meeting-week-grid";
 
@@ -28,6 +28,7 @@ export function MentorCalendar({
   events: MentorCalendarEvent[];
 }) {
   const [pending, setPending] = useState<string[]>([]);
+  const [hoveredIso, setHoveredIso] = useState<string | null>(null);
 
   function toggleCell(cell: Date) {
     const covering = pending.find((iso) =>
@@ -99,26 +100,48 @@ export function MentorCalendar({
 
       <MeetingWeekGrid
         emptyCell={(cell) => {
+          const cellIso = cell.toISOString();
           const coveringStart = [...pendingSet].find((iso) =>
             cellCoveredByPaintedSlot(cell, iso, durationMinutes),
           );
           const isPending = Boolean(coveringStart);
-          const isStart =
-            coveringStart !== undefined &&
-            new Date(coveringStart).getTime() === cell.getTime();
+          const hoverStart = !isPending ? hoveredIso : null;
+          const isHoverPreview =
+            hoverStart !== null &&
+            cellCoveredByPaintedSlot(cell, hoverStart, durationMinutes);
+          const rangeStart = coveringStart ?? hoverStart;
+          const isRangeStart =
+            rangeStart !== null && isPaintedSlotStart(cell, rangeStart);
+          const isRangeEnd =
+            rangeStart !== null &&
+            isPaintedSlotEnd(cell, rangeStart, durationMinutes);
 
           return (
             <button
-              aria-label={
-                isStart
-                  ? `${durationMinutes}-minute slot starting ${cell.toLocaleTimeString()}`
-                  : undefined
-              }
-              className={`h-7 w-full border border-transparent border-b-brand/20 text-left hover:ring-2 hover:ring-inset hover:ring-brand-deep ${
-                isPending ? "bg-sky-200" : ""
-              } ${isStart ? "rounded-t bg-sky-300" : ""}`}
+              aria-label={`${durationMinutes}-minute slot starting ${cell.toLocaleTimeString()}`}
+              className={`h-7 w-full text-left ${
+                isPending ? "bg-sky-400" : ""
+              } ${isHoverPreview ? "bg-sky-400/25" : ""} ${
+                isHoverPreview
+                  ? `border-x-2 border-brand-deep ${isRangeStart ? "border-t-2" : ""} ${isRangeEnd ? "border-b-2" : ""}`
+                  : ""
+              } ${isPending && isRangeStart ? "rounded-t-md" : ""} ${
+                isPending && isRangeEnd ? "rounded-b-md" : ""
+              }`}
+              data-calendar-paint=""
               type="button"
               onClick={() => toggleCell(cell)}
+              onMouseEnter={() => setHoveredIso(cellIso)}
+              onMouseLeave={(event) => {
+                const next = event.relatedTarget;
+                if (
+                  next instanceof Element &&
+                  next.closest("[data-calendar-paint]")
+                ) {
+                  return;
+                }
+                setHoveredIso(null);
+              }}
             />
           );
         }}
