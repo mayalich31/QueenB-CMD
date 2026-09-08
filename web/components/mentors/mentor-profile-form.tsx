@@ -15,20 +15,29 @@ type MentorProfileValues = {
 type MentorProfileFormProps = {
   profile: MentorProfileValues | null;
   embedded?: boolean;
+  variant?: "standalone" | "embedded" | "modal";
 };
 
 export function MentorProfileForm({
   profile,
   embedded = false,
+  variant,
 }: MentorProfileFormProps) {
+  const mode = variant ?? (embedded ? "embedded" : "standalone");
+  const isModal = mode === "modal";
+  const isEmbedded = mode === "embedded";
+
   return (
     <section
-      className={embedded ? "scroll-mt-24" : "mt-12 scroll-mt-24"}
-      id="mentor"
+      className={
+        isModal ? undefined : isEmbedded ? "scroll-mt-24" : "mt-12 scroll-mt-24"
+      }
+      id={isModal ? undefined : "mentor"}
     >
-      {embedded ? (
+      {isEmbedded ? (
         <h2 className="text-xl font-semibold">Mentor details</h2>
-      ) : (
+      ) : null}
+      {mode === "standalone" ? (
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div>
             <p className="text-sm font-medium text-brand-deep">Mentor profile</p>
@@ -45,14 +54,16 @@ export function MentorProfileForm({
             Cancel
           </a>
         </div>
-      )}
+      ) : null}
 
       <form
         action={saveMentorProfileAction}
         className={
-          embedded
-            ? "mt-6 space-y-8"
-            : "mt-6 space-y-8 rounded-2xl border border-brand/30 bg-cream-card p-6"
+          isModal
+            ? "mt-6 space-y-6"
+            : isEmbedded
+              ? "mt-6 space-y-8"
+              : "mt-6 space-y-8 rounded-2xl border border-brand/30 bg-cream-card p-6"
         }
       >
         <label className="block text-sm font-medium text-zinc-800">
@@ -130,7 +141,7 @@ export function MentorProfileForm({
           className="rounded-lg bg-brand-deep px-5 py-2.5 font-medium text-white hover:bg-brand"
           type="submit"
         >
-          {profile ? "Save mentor details" : "Become a mentor"}
+          {isModal ? "Save" : profile ? "Save mentor details" : "Become a mentor"}
         </button>
       </form>
     </section>

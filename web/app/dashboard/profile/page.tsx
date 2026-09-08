@@ -4,7 +4,7 @@ import Link from "next/link";
 import { FeedbackForm } from "@/components/meetings/feedback-form";
 import { MeetingVerificationPanel } from "@/components/meetings/meeting-verification-panel";
 import { MeetingWeekGrid } from "@/components/meetings/meeting-week-grid";
-import { MentorProfileForm } from "@/components/mentors/mentor-profile-form";
+import { BecomeMentorModal } from "@/components/mentors/become-mentor-modal";
 import { ProfileDetailsCard } from "@/components/profile/profile-details-card";
 import { ProfileDetailsForm } from "@/components/profile/profile-details-form";
 import { SlotSelectionButtons } from "@/components/meetings/slot-selection-buttons";
@@ -39,7 +39,6 @@ type ProfilePageProps = {
     message?: string;
     week?: string;
     edit?: string;
-    mentor?: string;
     view?: string;
   }>;
 };
@@ -269,7 +268,6 @@ export default async function ProfilePage({
   });
 
   const isEditing = status.edit === "1";
-  const isBecomingMentor = status.mentor === "1" && !user.isMentor;
   const view =
     status.view === "calendar" ||
     status.view === "appointments" ||
@@ -313,14 +311,7 @@ export default async function ProfilePage({
             >
               Edit Profile
             </Link>
-            {!user.isMentor ? (
-              <Link
-                className="rounded-lg bg-brand-deep px-4 py-2 text-sm font-medium text-white hover:bg-brand"
-                href="/dashboard/profile?mentor=1"
-              >
-                Become a Mentor
-              </Link>
-            ) : null}
+            {!user.isMentor ? <BecomeMentorModal /> : null}
           </div>
         ) : null}
       </div>
@@ -379,7 +370,6 @@ export default async function ProfilePage({
           ) : (
             <ProfileDetailsCard profile={user} />
           )}
-          {isBecomingMentor ? <MentorProfileForm profile={null} /> : null}
         </>
       ) : null}
 

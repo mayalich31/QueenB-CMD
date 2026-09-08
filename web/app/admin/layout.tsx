@@ -20,13 +20,15 @@ export default async function AdminLayout({
       <FloatingTopBar>
         <div className="flex items-center gap-3">
           <QueensMatchMark href="/admin" />
-          <nav className="ml-auto flex items-center gap-2" aria-label="Admin workspace">
+          <nav className="flex items-center gap-2" aria-label="Admin workspace">
             <Link
               className="rounded-lg px-3 py-2 text-sm font-medium hover:bg-brand/30"
               href="/dashboard"
             >
               Home
             </Link>
+          </nav>
+          <div className="ml-auto flex items-center gap-2">
             <form action={logout}>
               <button
                 className="rounded-lg px-3 py-2 text-sm text-zinc-600 hover:bg-brand/30"
@@ -36,8 +38,8 @@ export default async function AdminLayout({
               </button>
             </form>
             <UserInitialAvatar name={user.username} />
-          </nav>
-          <QueenBLogo className="h-10 shrink-0" />
+            <QueenBLogo className="h-10 shrink-0" />
+          </div>
         </div>
       </FloatingTopBar>
       <div className="mx-auto flex max-w-6xl gap-8 px-4 py-8">

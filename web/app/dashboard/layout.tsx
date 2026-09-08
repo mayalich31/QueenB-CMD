@@ -56,8 +56,8 @@ export default async function DashboardLayout({
       <div className="min-h-screen bg-cream pt-3 text-ink">
         <FloatingTopBar>
           <div className="flex items-center gap-3">
-            <QueensMatchMark href="/" />
-            <nav className="ml-auto flex items-center gap-2" aria-label="Workspace">
+            <QueensMatchMark href="/dashboard" />
+            <nav className="flex min-w-0 items-center gap-1 sm:gap-2" aria-label="Workspace">
               <Link
                 className="rounded-lg px-3 py-2 text-sm font-medium hover:bg-brand/30"
                 href="/dashboard"
@@ -86,6 +86,8 @@ export default async function DashboardLayout({
                   Admin
                 </Link>
               ) : null}
+            </nav>
+            <div className="ml-auto flex items-center gap-2">
               <NotificationBell />
               <form action={logout}>
                 <button
@@ -98,8 +100,8 @@ export default async function DashboardLayout({
               {user?.username ? (
                 <UserInitialAvatar name={user.username} />
               ) : null}
-            </nav>
-            <QueenBLogo className="h-10 shrink-0" />
+              <QueenBLogo className="h-10 shrink-0" />
+            </div>
           </div>
         </FloatingTopBar>
         {enforcement.isSoftBlocked ? (
