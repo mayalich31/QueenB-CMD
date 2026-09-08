@@ -21,9 +21,23 @@ export function QueensMatchMark({
   title?: string;
 }) {
   return (
-    <Link className="font-semibold tracking-widest text-brand-deep" href={href}>
+    <Link className="font-semibold tracking-widest text-ink" href={href}>
       {title}
     </Link>
+  );
+}
+
+export function FloatingTopBar({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  return (
+    <div className="sticky top-3 z-50 mx-3 sm:mx-4">
+      <div className="mx-auto max-w-6xl rounded-2xl bg-cream-card px-4 py-3 shadow-lg ring-1 ring-ink-soft/10">
+        {children}
+      </div>
+    </div>
   );
 }
 
@@ -33,14 +47,14 @@ export function PublicSiteHeader({
   children?: React.ReactNode;
 }) {
   return (
-    <header className="border-b border-brand/40 bg-cream-card">
-      <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-5">
+    <FloatingTopBar>
+      <div className="flex items-center justify-between gap-4">
         <QueensMatchMark href="/" />
         <div className="flex items-center gap-3">
           {children}
           <QueenBLogo />
         </div>
       </div>
-    </header>
+    </FloatingTopBar>
   );
 }

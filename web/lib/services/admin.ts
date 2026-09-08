@@ -1,13 +1,23 @@
 import {
+  ADMIN_METRICS_DAYS,
   ADMIN_PAGE_SIZE,
+  ADMIN_REQUEST_TIMEOUT_DAYS,
+  ADMIN_TOP_MENTORS,
   MENTOR_MILESTONE_COMPLETED_MEETINGS,
 } from "@/lib/constants/admin";
 import { FEEDBACK_SOFT_BLOCK_DAYS, FEEDBACK_SOFT_BLOCK_MS, MS_PER_DAY } from "@/lib/constants/enforcement";
+import {
+  MENTORING_TOPIC_LABELS,
+  MENTORING_TOPIC_VALUES,
+  type MentoringTopic,
+} from "@/lib/constants/mentoring-topics";
+import { listActiveMentorTopicsForAdmin } from "@/lib/dal/mentor-profiles";
 import {
   countMeetingsByStatusForAdmin,
   countMeetingsForAdmin,
   findAdminMeetingById,
   listCompletedMentorMeetingCounts,
+  listMeetingsMetricsForAdmin,
   listMeetingsForAdmin,
   listMeetingsInUtcRangeForAdmin,
   listNotCompletedMeetingsForAdmin,
@@ -19,6 +29,7 @@ import {
   countUsersForAdmin,
   findAdminUserById,
   findUsersByIds,
+  listUserSignupDatesForAdmin,
   listUsersForAdmin,
 } from "@/lib/dal/users";
 import { MeetingStatus } from "@/lib/generated/prisma/enums";
@@ -369,6 +380,191 @@ export function countAlertsByKind(alerts: AdminAlert[]) {
   return counts;
 }
 
+export function utcDayStart(date: Date) {
+  return new Date(
+    Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate()),
+  );
+}
+
+export function utcDayKey(date: Date) {
+  return utcDayStart(date).toISOString().slice(0, 10);
+}
+
+export function lastUtcDayKeys(now: Date, count = ADMIN_METRICS_DAYS) {
+  const start = utcDayStart(now);
+  const keys: string[] = [];
+
+  for (let offset = count - 1; offset >= 0; offset -= 1) {
+    const day = new Date(start.getTime() - offset * MS_PER_DAY);
+    keys.push(utcDayKey(day));
+  }
+
+  return keys;
+}
+
+export function formatUtcDayLabel(dayKey: string) {
+  return new Date(`${dayKey}T00:00:00.000Z`).toLocaleString("en-US", {
+    weekday: "short",
+    timeZone: "UTC",
+  });
+}
+
+export function percentChange(current: number, previous: number) {
+  if (previous === 0) {
+    return current === 0 ? 0 : 100;
+  }
+
+  return Math.round(((current - previous) / previous) * 100);
+}
+
+export function countCreatedBefore(
+  records: Array<{ createdAt: Date }>,
+  before: Date,
+) {
+  return records.filter((record) => record.createdAt < before).length;
+}
+
+export function bucketUserGrowthByDay(
+  users: Array<{ createdAt: Date; isMentor: boolean }>,
+  now: Date,
+) {
+  const keys = lastUtcDayKeys(now);
+  const buckets = new Map(
+    keys.map((day) => [
+      day,
+      { day, label: formatUtcDayLabel(day), mentors: 0, mentees: 0 },
+    ]),
+  );
+
+  for (const user of users) {
+    const bucket = buckets.get(utcDayKey(user.createdAt));
+    if (!bucket) {
+      continue;
+    }
+
+    if (user.isMentor) {
+      bucket.mentors += 1;
+    } else {
+      bucket.mentees += 1;
+    }
+  }
+
+  return keys.map((key) => buckets.get(key)!);
+}
+
+export function bucketMeetingsByWeekday(
+  meetings: Array<{ createdAt: Date; status: MeetingStatus }>,
+  now: Date,
+) {
+  const keys = lastUtcDayKeys(now);
+  const buckets = new Map(
+    keys.map((day) => [
+      day,
+      {
+        day,
+        label: formatUtcDayLabel(day),
+        ...emptyMeetingStatusCounts(),
+      },
+    ]),
+  );
+
+  for (const meeting of meetings) {
+    const bucket = buckets.get(utcDayKey(meeting.createdAt));
+    if (!bucket) {
+      continue;
+    }
+
+    bucket[meeting.status] += 1;
+  }
+
+  return keys.map((key) => buckets.get(key)!);
+}
+
+export type RequestResponseKind = "accepted" | "declined" | "expired" | "pending";
+
+export function classifyRequestResponse(
+  meeting: { status: MeetingStatus; createdAt: Date; slotCount: number },
+  now: Date,
+  timeoutDays = ADMIN_REQUEST_TIMEOUT_DAYS,
+): RequestResponseKind {
+  if (meeting.status === MeetingStatus.WAITING_FOR_MENTOR_TIMES) {
+    const ageMs = now.getTime() - meeting.createdAt.getTime();
+    return ageMs >= timeoutDays * MS_PER_DAY ? "expired" : "pending";
+  }
+
+  if (meeting.status === MeetingStatus.CANCELLED && meeting.slotCount === 0) {
+    return "declined";
+  }
+
+  return "accepted";
+}
+
+export function summarizeRequestResponses(
+  meetings: Array<{ status: MeetingStatus; createdAt: Date; slotCount: number }>,
+  now: Date,
+) {
+  const counts = {
+    accepted: 0,
+    declined: 0,
+    expired: 0,
+    pending: 0,
+  };
+
+  for (const meeting of meetings) {
+    counts[classifyRequestResponse(meeting, now)] += 1;
+  }
+
+  const resolved = counts.accepted + counts.declined + counts.expired;
+  const percent = (value: number) =>
+    resolved === 0 ? 0 : Math.round((value / resolved) * 100);
+
+  return {
+    counts,
+    percents: {
+      accepted: percent(counts.accepted),
+      declined: percent(counts.declined),
+      expired: percent(counts.expired),
+    },
+  };
+}
+
+export function summarizeTopicsOffered(profiles: Array<{ topics: string[] }>) {
+  const counts = Object.fromEntries(
+    MENTORING_TOPIC_VALUES.map((topic) => [topic, 0]),
+  ) as Record<MentoringTopic, number>;
+
+  for (const profile of profiles) {
+    for (const topic of profile.topics) {
+      if (topic in counts) {
+        counts[topic as MentoringTopic] += 1;
+      }
+    }
+  }
+
+  return MENTORING_TOPIC_VALUES.map((topic) => ({
+    topic,
+    label: MENTORING_TOPIC_LABELS[topic],
+    count: counts[topic],
+  }));
+}
+
+export function mapTopMentors(
+  counts: Array<{ mentorId: string; _count: { id: number } }>,
+  users: Array<{ id: string; username: string }>,
+  limit = ADMIN_TOP_MENTORS,
+) {
+  const usernames = new Map(users.map((user) => [user.id, user.username]));
+
+  return [...counts]
+    .sort((left, right) => right._count.id - left._count.id)
+    .slice(0, limit)
+    .map((entry) => ({
+      userId: entry.mentorId,
+      username: usernames.get(entry.mentorId) ?? "Unknown",
+      completedCount: entry._count.id,
+    }));
+}
+
 export async function getAdminSummary(now = new Date()) {
   const [userTotal, mentorTotal, statusRows, alerts] = await Promise.all([
     countUsersForAdmin(undefined),
@@ -382,6 +578,7 @@ export async function getAdminSummary(now = new Date()) {
     (sum, count) => sum + count,
     0,
   );
+  const todayStart = utcDayStart(now);
 
   return {
     users: {
@@ -396,6 +593,68 @@ export async function getAdminSummary(now = new Date()) {
     alerts: {
       total: alerts.length,
       byKind: countAlertsByKind(alerts),
+      previous: alerts.filter((alert) => alert.occurredAt < todayStart).length,
     },
+  };
+}
+
+export async function getAdminMetrics(now = new Date()) {
+  const [summary, signups, meetingRows, mentorCounts, topicProfiles] =
+    await Promise.all([
+      getAdminSummary(now),
+      listUserSignupDatesForAdmin(),
+      listMeetingsMetricsForAdmin(),
+      listCompletedMentorMeetingCounts(),
+      listActiveMentorTopicsForAdmin(),
+    ]);
+
+  const todayStart = utcDayStart(now);
+  const completedMeetings = meetingRows.filter(
+    (meeting) => meeting.status === MeetingStatus.COMPLETED,
+  );
+  const completedPrevious = completedMeetings.filter((meeting) => {
+    const at = meeting.completedAt ?? meeting.createdAt;
+    return at < todayStart;
+  }).length;
+
+  const topCountRows = [...mentorCounts]
+    .sort((left, right) => right._count.id - left._count.id)
+    .slice(0, ADMIN_TOP_MENTORS);
+  const topUsers = await findUsersByIds(topCountRows.map((row) => row.mentorId));
+
+  return {
+    ...summary,
+    changes: {
+      users: percentChange(
+        summary.users.total,
+        countCreatedBefore(signups, todayStart),
+      ),
+      mentors: percentChange(
+        summary.users.mentors,
+        signups.filter((user) => user.isMentor && user.createdAt < todayStart)
+          .length,
+      ),
+      meetings: percentChange(
+        summary.meetings.total,
+        countCreatedBefore(meetingRows, todayStart),
+      ),
+      completed: percentChange(
+        summary.meetings.byStatus[MeetingStatus.COMPLETED],
+        completedPrevious,
+      ),
+      alerts: percentChange(summary.alerts.total, summary.alerts.previous),
+    },
+    userGrowth: bucketUserGrowthByDay(signups, now),
+    requestResponses: summarizeRequestResponses(
+      meetingRows.map((meeting) => ({
+        status: meeting.status,
+        createdAt: meeting.createdAt,
+        slotCount: meeting._count.slots,
+      })),
+      now,
+    ),
+    topMentors: mapTopMentors(topCountRows, topUsers),
+    topicsOffered: summarizeTopicsOffered(topicProfiles),
+    meetingsByWeekday: bucketMeetingsByWeekday(meetingRows, now),
   };
 }

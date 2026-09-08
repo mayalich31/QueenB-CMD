@@ -447,3 +447,24 @@ export function countMeetingsByStatusForAdmin() {
     _count: { id: true },
   });
 }
+
+export function listCompletedMeetingDatesForAdmin() {
+  return prisma.meeting.findMany({
+    where: {
+      status: MeetingStatus.COMPLETED,
+      completedAt: { not: null },
+    },
+    select: { completedAt: true },
+  });
+}
+
+export function listMeetingsMetricsForAdmin() {
+  return prisma.meeting.findMany({
+    select: {
+      status: true,
+      createdAt: true,
+      completedAt: true,
+      _count: { select: { slots: true } },
+    },
+  });
+}

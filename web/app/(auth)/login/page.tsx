@@ -14,10 +14,10 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
   const { error, message } = await searchParams;
 
   return (
-    <div className="flex min-h-screen flex-col bg-cream">
+    <div className="flex min-h-screen flex-col bg-cream pt-3">
       <PublicSiteHeader />
       <main className="flex flex-1 items-center justify-center px-4 py-12">
-      <section className="w-full max-w-md rounded-2xl border border-brand/30 bg-cream-card p-8 shadow-sm">
+      <section className="w-full max-w-md rounded-2xl border border-ink-soft/15 bg-cream-card p-8 shadow-md">
         <h1 className="text-3xl font-semibold text-zinc-950">Sign in</h1>
         <p className="mt-2 text-sm text-zinc-600">
           Continue to your mentoring workspace.

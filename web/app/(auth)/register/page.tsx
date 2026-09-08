@@ -16,10 +16,10 @@ export default async function RegisterPage({
   const { error } = await searchParams;
 
   return (
-    <div className="flex min-h-screen flex-col bg-cream">
+    <div className="flex min-h-screen flex-col bg-cream pt-3">
       <PublicSiteHeader />
       <main className="flex flex-1 items-center justify-center px-4 py-12">
-      <section className="w-full max-w-2xl rounded-2xl border border-brand/30 bg-cream-card p-8 shadow-sm">
+      <section className="w-full max-w-2xl rounded-2xl border border-ink-soft/15 bg-cream-card p-8 shadow-md">
         <h1 className="text-3xl font-semibold text-zinc-950">
           Create your account
         </h1>

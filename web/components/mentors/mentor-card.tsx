@@ -90,15 +90,12 @@ export function MentorCard({
   }, [open]);
 
   return (
-    <article className="flex h-full flex-col rounded-2xl border border-brand/30 bg-cream-card p-4">
+    <article className="flex h-full flex-col rounded-2xl border border-ink-soft/15 bg-cream-card p-4 shadow-md">
       <h2 className="text-base font-semibold leading-tight">{username}</h2>
-      <p className="mt-3 text-[11px] font-medium uppercase tracking-wide text-zinc-500">
-        Advisory topics
-      </p>
-      <div className="mt-1.5 flex flex-wrap gap-1.5">
+      <div className="mt-3 flex flex-wrap gap-1.5">
         {topics.map((topic) => (
           <span
-            className="rounded-full bg-zinc-100 px-2 py-0.5 text-xs text-zinc-700"
+            className="rounded-full bg-mist/40 px-2.5 py-1 text-sm text-ink"
             key={topic}
           >
             {topicLabel(topic)}
@@ -157,7 +154,7 @@ export function MentorCard({
           <div
             aria-labelledby={titleId}
             aria-modal="true"
-            className="relative z-10 w-full max-w-lg rounded-2xl border border-brand/30 bg-cream-card p-6 shadow-xl"
+            className="relative z-10 w-full max-w-lg rounded-2xl border border-ink-soft/15 bg-cream-card p-6 shadow-xl"
             role="dialog"
           >
             <button
@@ -227,7 +224,7 @@ export function MentorCard({
                 <dd className="mt-2 flex flex-wrap gap-1.5">
                   {topics.map((topic) => (
                     <span
-                      className="rounded-full bg-zinc-100 px-2.5 py-1 text-xs text-zinc-700"
+                      className="rounded-full bg-mist/40 px-2.5 py-1 text-sm text-ink"
                       key={topic}
                     >
                       {topicLabel(topic)}

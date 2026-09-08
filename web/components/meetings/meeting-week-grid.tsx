@@ -93,10 +93,10 @@ export function MeetingWeekGrid({
           className="grid min-w-[52rem] gap-px bg-zinc-200"
           style={{ gridTemplateColumns: "4.5rem repeat(7, minmax(0, 1fr))" }}
         >
-          <div className="bg-cream" />
+          <div className="bg-table-header" />
           {days.map((day, index) => (
             <div
-              className="bg-cream px-1 py-2 text-center text-xs font-medium text-zinc-600"
+              className="bg-table-header px-1 py-2 text-center text-xs font-medium text-ink"
               key={day.toISOString()}
             >
               {weekdayLabels[index]} {day.getDate()}

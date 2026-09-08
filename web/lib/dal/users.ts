@@ -63,6 +63,15 @@ export function countMentorsForAdmin() {
   return prisma.user.count({ where: { isMentor: true } });
 }
 
+export function listUserSignupDatesForAdmin() {
+  return prisma.user.findMany({
+    select: {
+      createdAt: true,
+      isMentor: true,
+    },
+  });
+}
+
 export function findUsersByIds(ids: string[]) {
   if (ids.length === 0) {
     return Promise.resolve([]);

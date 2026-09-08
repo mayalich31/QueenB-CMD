@@ -121,11 +121,11 @@ export default async function Home() {
   }
 
   return (
-    <main className="flex min-h-screen flex-col bg-cream text-zinc-950">
+    <main className="flex min-h-screen flex-col bg-cream pt-3 text-ink">
       <PublicSiteHeader>
         <nav className="flex items-center gap-3" aria-label="Account">
           <Link
-            className="rounded-lg border border-brand/60 bg-cream-card px-5 py-2.5 text-sm font-medium text-zinc-800 hover:bg-brand/30"
+            className="rounded-lg border border-ink-soft/40 bg-cream-card px-5 py-2.5 text-sm font-medium text-ink hover:bg-mist/40"
             href="/login"
           >
             Sign In
@@ -148,7 +148,7 @@ export default async function Home() {
             const Icon = card.icon;
             return (
               <li key={card.title}>
-                <article className="flex min-h-[22rem] flex-col items-center justify-center rounded-3xl border border-brand/30 bg-cream-card p-8 text-center shadow-sm sm:aspect-square sm:min-h-0">
+                <article className="flex min-h-[22rem] flex-col items-center justify-center rounded-3xl border border-ink-soft/15 bg-cream-card p-8 text-center shadow-md sm:aspect-square sm:min-h-0">
                   <span className="flex h-16 w-16 items-center justify-center rounded-2xl bg-brand/40">
                     <Icon />
                   </span>

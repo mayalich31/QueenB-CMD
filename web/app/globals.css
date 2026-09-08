@@ -1,12 +1,17 @@
 @import "tailwindcss";
 
 :root {
-  --background: #fff2c6;
-  --foreground: #18181b;
-  --cream: #fff2c6;
-  --cream-card: #fff8de;
-  --brand: #aac4f5;
-  --brand-deep: #8ca9ff;
+  --background: #f5feff;
+  --foreground: #0f2a4a;
+  --cream: #f5feff;
+  --cream-card: #ffffff;
+  --table-header: #9bacd8;
+  --mist: #9ec0e6;
+  --wine: #1e4d8c;
+  --ink: #0f2a4a;
+  --ink-soft: #2a5a8c;
+  --brand: #2b6cb0;
+  --brand-deep: #1a365d;
 }
 
 @theme inline {
@@ -14,6 +19,11 @@
   --color-foreground: var(--foreground);
   --color-cream: var(--cream);
   --color-cream-card: var(--cream-card);
+  --color-table-header: var(--table-header);
+  --color-mist: var(--mist);
+  --color-wine: var(--wine);
+  --color-ink: var(--ink);
+  --color-ink-soft: var(--ink-soft);
   --color-brand: var(--brand);
   --color-brand-deep: var(--brand-deep);
   --font-sans: var(--font-geist-sans);
@@ -27,6 +37,6 @@ body {
 }
 
 .queenb-logo {
-  filter: brightness(0) saturate(100%) invert(72%) sepia(18%) saturate(2200%)
-    hue-rotate(191deg) brightness(1.05);
+  filter: brightness(0) saturate(100%) invert(18%) sepia(28%) saturate(1800%)
+    hue-rotate(190deg) brightness(0.85);
 }

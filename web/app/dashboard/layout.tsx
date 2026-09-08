@@ -11,7 +11,7 @@ import {
   type NotificationItem,
 } from "@/components/notifications/realtime-provider";
 import { NotificationToastHost } from "@/components/notifications/toast-host";
-import { QueenBLogo, QueensMatchMark } from "@/components/brand-lockup";
+import { QueenBLogo, QueensMatchMark, FloatingTopBar } from "@/components/brand-lockup";
 import { UserInitialAvatar } from "@/components/user-initial-avatar";
 import { getFeedbackEnforcementState } from "@/lib/services/enforcement";
 import { isSoleAdminEmail } from "@/lib/services/admin-authorization";
@@ -53,9 +53,9 @@ export default async function DashboardLayout({
       initialNotifications={initialNotifications}
       userId={claims.sub}
     >
-      <div className="min-h-screen bg-cream text-zinc-950">
-        <header className="border-b border-brand/40 bg-cream-card">
-          <div className="mx-auto flex max-w-6xl items-center gap-3 px-4 py-4">
+      <div className="min-h-screen bg-cream pt-3 text-ink">
+        <FloatingTopBar>
+          <div className="flex items-center gap-3">
             <QueensMatchMark href="/" />
             <nav className="ml-auto flex items-center gap-2" aria-label="Workspace">
               <Link
@@ -101,7 +101,7 @@ export default async function DashboardLayout({
             </nav>
             <QueenBLogo className="h-10 shrink-0" />
           </div>
-        </header>
+        </FloatingTopBar>
         {enforcement.isSoftBlocked ? (
           <FeedbackSoftBlockBanner
             overdueCount={enforcement.overdueMeetings.length}

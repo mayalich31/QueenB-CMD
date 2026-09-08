@@ -46,6 +46,13 @@ export async function listAvailableMentors({
   return mentors;
 }
 
+export function listActiveMentorTopicsForAdmin() {
+  return prisma.mentorProfile.findMany({
+    where: { isActive: true },
+    select: { topics: true },
+  });
+}
+
 export function createMentorProfile(data: MentorProfileCreateInput) {
   return prisma.$transaction(async (transaction) => {
     const profile = await transaction.mentorProfile.create({ data });

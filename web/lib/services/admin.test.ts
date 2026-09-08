@@ -5,7 +5,9 @@ vi.mock("@/lib/dal/meetings", () => ({
   countMeetingsByStatusForAdmin: vi.fn(),
   countMeetingsForAdmin: vi.fn(),
   findAdminMeetingById: vi.fn(),
+  listCompletedMeetingDatesForAdmin: vi.fn(),
   listCompletedMentorMeetingCounts: vi.fn(),
+  listMeetingsMetricsForAdmin: vi.fn(),
   listMeetingsForAdmin: vi.fn(),
   listMeetingsInUtcRangeForAdmin: vi.fn(),
   listNotCompletedMeetingsForAdmin: vi.fn(),
@@ -17,7 +19,11 @@ vi.mock("@/lib/dal/users", () => ({
   countUsersForAdmin: vi.fn(),
   findAdminUserById: vi.fn(),
   findUsersByIds: vi.fn(),
+  listUserSignupDatesForAdmin: vi.fn(),
   listUsersForAdmin: vi.fn(),
+}));
+vi.mock("@/lib/dal/mentor-profiles", () => ({
+  listActiveMentorTopicsForAdmin: vi.fn(),
 }));
 
 import { MENTOR_MILESTONE_COMPLETED_MEETINGS } from "@/lib/constants/admin";
@@ -28,10 +34,18 @@ import {
   buildAdminAlerts,
   buildUtcMonthGrid,
   classifyOverdueFeedbackMeetings,
+  bucketMeetingsByWeekday,
+  bucketUserGrowthByDay,
+  classifyRequestResponse,
   countAlertsByKind,
+  lastUtcDayKeys,
+  mapTopMentors,
   mentorsReachingMilestone,
+  percentChange,
   shiftUtcMonth,
   summarizeMeetingStatuses,
+  summarizeRequestResponses,
+  summarizeTopicsOffered,
   utcMonthRange,
 } from "./admin";
 import type { VerifiableMeeting } from "./meeting-verification";
@@ -213,5 +227,163 @@ describe("admin summary aggregation", () => {
       OVERDUE_FEEDBACK: 1,
       MENTOR_MILESTONE: 0,
     });
+  });
+});
+
+describe("admin metrics helpers", () => {
+  const now = new Date("2026-09-15T12:00:00.000Z");
+
+  it("returns seven UTC day keys ending today", () => {
+    expect(lastUtcDayKeys(now)).toEqual([
+      "2026-09-09",
+      "2026-09-10",
+      "2026-09-11",
+      "2026-09-12",
+      "2026-09-13",
+      "2026-09-14",
+      "2026-09-15",
+    ]);
+  });
+
+  it("computes day-over-day percent change", () => {
+    expect(percentChange(102, 100)).toBe(2);
+    expect(percentChange(98, 100)).toBe(-2);
+    expect(percentChange(5, 0)).toBe(100);
+    expect(percentChange(0, 0)).toBe(0);
+  });
+
+  it("buckets mentor vs mentee signups by day", () => {
+    const growth = bucketUserGrowthByDay(
+      [
+        { createdAt: new Date("2026-09-15T01:00:00.000Z"), isMentor: true },
+        { createdAt: new Date("2026-09-15T08:00:00.000Z"), isMentor: false },
+        { createdAt: new Date("2026-09-14T20:00:00.000Z"), isMentor: false },
+        { createdAt: new Date("2026-08-01T00:00:00.000Z"), isMentor: true },
+      ],
+      now,
+    );
+
+    expect(growth).toHaveLength(7);
+    expect(growth[6]).toEqual({
+      day: "2026-09-15",
+      label: "Tue",
+      mentors: 1,
+      mentees: 1,
+    });
+    expect(growth[5]).toEqual({
+      day: "2026-09-14",
+      label: "Mon",
+      mentors: 0,
+      mentees: 1,
+    });
+    expect(growth[0].mentors + growth[0].mentees).toBe(0);
+  });
+
+  it("classifies request responses and weekday meeting stacks", () => {
+    expect(
+      classifyRequestResponse(
+        {
+          status: MeetingStatus.SCHEDULED,
+          createdAt: now,
+          slotCount: 2,
+        },
+        now,
+      ),
+    ).toBe("accepted");
+    expect(
+      classifyRequestResponse(
+        {
+          status: MeetingStatus.CANCELLED,
+          createdAt: now,
+          slotCount: 0,
+        },
+        now,
+      ),
+    ).toBe("declined");
+    expect(
+      classifyRequestResponse(
+        {
+          status: MeetingStatus.WAITING_FOR_MENTOR_TIMES,
+          createdAt: new Date("2026-09-01T00:00:00.000Z"),
+          slotCount: 0,
+        },
+        now,
+      ),
+    ).toBe("expired");
+    expect(
+      classifyRequestResponse(
+        {
+          status: MeetingStatus.WAITING_FOR_MENTOR_TIMES,
+          createdAt: new Date("2026-09-14T00:00:00.000Z"),
+          slotCount: 0,
+        },
+        now,
+      ),
+    ).toBe("pending");
+
+    expect(
+      summarizeRequestResponses(
+        [
+          { status: MeetingStatus.COMPLETED, createdAt: now, slotCount: 1 },
+          { status: MeetingStatus.COMPLETED, createdAt: now, slotCount: 1 },
+          { status: MeetingStatus.CANCELLED, createdAt: now, slotCount: 0 },
+          {
+            status: MeetingStatus.WAITING_FOR_MENTOR_TIMES,
+            createdAt: new Date("2026-09-01T00:00:00.000Z"),
+            slotCount: 0,
+          },
+        ],
+        now,
+      ).percents,
+    ).toEqual({ accepted: 50, declined: 25, expired: 25 });
+
+    const stacked = bucketMeetingsByWeekday(
+      [
+        {
+          createdAt: new Date("2026-09-15T10:00:00.000Z"),
+          status: MeetingStatus.SCHEDULED,
+        },
+        {
+          createdAt: new Date("2026-09-15T11:00:00.000Z"),
+          status: MeetingStatus.COMPLETED,
+        },
+        {
+          createdAt: new Date("2026-09-14T11:00:00.000Z"),
+          status: MeetingStatus.CANCELLED,
+        },
+      ],
+      now,
+    );
+
+    expect(stacked[6][MeetingStatus.SCHEDULED]).toBe(1);
+    expect(stacked[6][MeetingStatus.COMPLETED]).toBe(1);
+    expect(stacked[5][MeetingStatus.CANCELLED]).toBe(1);
+  });
+
+  it("counts canonical topics and ranks top mentors", () => {
+    expect(
+      summarizeTopicsOffered([
+        { topics: ["career_planning", "resume_review"] },
+        { topics: ["career_planning", "unknown_topic"] },
+      ]).find((row) => row.topic === "career_planning")?.count,
+    ).toBe(2);
+
+    expect(
+      mapTopMentors(
+        [
+          { mentorId: "a", _count: { id: 3 } },
+          { mentorId: "b", _count: { id: 9 } },
+          { mentorId: "c", _count: { id: 1 } },
+        ],
+        [
+          { id: "a", username: "ava" },
+          { id: "b", username: "bella" },
+        ],
+        2,
+      ),
+    ).toEqual([
+      { userId: "b", username: "bella", completedCount: 9 },
+      { userId: "a", username: "ava", completedCount: 3 },
+    ]);
   });
 });

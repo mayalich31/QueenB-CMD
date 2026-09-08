@@ -85,7 +85,7 @@ export default async function AdminUserDetailPage({
         </div>
       ) : null}
 
-      <h2 className="mt-8 text-lg font-semibold">Meeting history</h2>
+      <h2 className="mt-8 text-lg font-semibold">Meetings History</h2>
       {meetings.length === 0 ? (
         <p className="mt-3 text-sm text-zinc-600">No meetings yet.</p>
       ) : (

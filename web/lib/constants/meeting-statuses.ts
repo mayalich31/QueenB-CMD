@@ -19,8 +19,9 @@ export const MEETING_STATUS_LABELS: Record<MeetingStatus, string> = {
 
 export const MEETING_STATUS_COLORS: Record<MeetingStatus, string> = {
   [MeetingStatus.WAITING_FOR_MENTOR_TIMES]: "bg-zinc-200 text-zinc-800",
-  [MeetingStatus.WAITING_FOR_MENTEE_SELECTION]: "bg-brand/50 text-zinc-800",
-  [MeetingStatus.SCHEDULED]: "bg-brand/35 text-zinc-800",
+  [MeetingStatus.WAITING_FOR_MENTEE_SELECTION]:
+    "bg-[rgb(29_57_60_/_0.5)] text-zinc-800",
+  [MeetingStatus.SCHEDULED]: "bg-[rgb(29_57_60_/_0.35)] text-zinc-800",
   [MeetingStatus.ATTENDANCE_CONFIRMED]: "bg-emerald-100 text-emerald-800",
   [MeetingStatus.COMPLETED]: "bg-emerald-200 text-emerald-950",
   [MeetingStatus.NOT_COMPLETED]: "bg-red-100 text-red-800",

@@ -52,7 +52,7 @@ export default async function AdminUsersPage({
 
       <div className="mt-6 overflow-x-auto rounded-2xl border border-brand/30 bg-cream-card">
         <table className="min-w-full text-left text-sm">
-          <thead className="border-b border-brand/30 bg-cream text-zinc-600">
+          <thead className="border-b border-brand/30 bg-table-header text-ink">
             <tr>
               <th className="px-4 py-3 font-medium">User</th>
               <th className="px-4 py-3 font-medium">Email</th>

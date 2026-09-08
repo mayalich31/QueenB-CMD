@@ -63,7 +63,7 @@ export default async function AdminCalendarPage({
       <div className="mt-8 grid grid-cols-7 gap-px overflow-hidden rounded-2xl border border-zinc-200 bg-zinc-200">
         {weekdayLabels.map((label) => (
           <div
-            className="bg-cream px-2 py-2 text-center text-xs font-medium text-zinc-500"
+            className="bg-table-header px-2 py-2 text-center text-xs font-medium text-ink"
             key={label}
           >
             {label}

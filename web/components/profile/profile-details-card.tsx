@@ -54,7 +54,7 @@ export function ProfileDetailsList({ profile }: { profile: ProfileDetails }) {
 
 export function ProfileDetailsCard({ profile }: { profile: ProfileDetails }) {
   return (
-    <section className="mt-8 rounded-2xl border border-brand/30 bg-cream-card p-6">
+    <section className="mt-8 rounded-2xl border border-ink-soft/15 bg-cream-card p-6 shadow-md">
       <h2 className="text-xl font-semibold">Profile details</h2>
       <div className="mt-5">
         <ProfileDetailsList profile={profile} />

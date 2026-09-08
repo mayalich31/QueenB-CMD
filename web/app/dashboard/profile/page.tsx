@@ -291,7 +291,7 @@ export default async function ProfilePage({
     },
     {
       id: "history",
-      label: "Meeting History",
+      label: "Meetings History",
       href: "/dashboard/profile?view=history",
     },
   ] as const;
@@ -420,10 +420,10 @@ export default async function ProfilePage({
 
       {view === "history" ? (
         <MeetingSection
-          title="Meeting history"
+          title="Meetings History"
           meetings={historyMeetings}
           userId={userId}
-          emptyMessage="You have no meeting history yet."
+          emptyMessage="You have no meetings history yet."
         />
       ) : null}
     </div>
