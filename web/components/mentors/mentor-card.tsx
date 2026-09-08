@@ -107,6 +107,14 @@ export function MentorCard({
       </p>
 
       <div className="mt-auto pt-4">
+        {!hasSpots ? (
+          <p className="mb-2 text-sm text-red-700">No available spots left</p>
+        ) : null}
+        {hasSpots && isSoftBlocked ? (
+          <p className="mb-2 text-sm text-red-700">
+            Submit overdue feedback before requesting another meeting.
+          </p>
+        ) : null}
         <div className="flex gap-2">
           <button
             className="flex-1 rounded-lg border border-brand/60 bg-cream px-3 py-2 text-sm font-medium text-zinc-800 hover:bg-brand/30"
@@ -133,14 +141,6 @@ export function MentorCard({
             </button>
           </form>
         </div>
-        {!hasSpots ? (
-          <p className="mt-2 text-sm text-red-700">No available spots left</p>
-        ) : null}
-        {hasSpots && isSoftBlocked ? (
-          <p className="mt-2 text-sm text-red-700">
-            Submit overdue feedback before requesting another meeting.
-          </p>
-        ) : null}
       </div>
 
       {open ? (

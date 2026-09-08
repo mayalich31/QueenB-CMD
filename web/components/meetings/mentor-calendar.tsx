@@ -6,7 +6,7 @@ import { useMemo, useState } from "react";
 import { proposeMeetingSlotsAction } from "@/app/dashboard/mentor/actions";
 import { MeetingWeekGrid } from "@/components/meetings/meeting-week-grid";
 import { SlotProposalForm } from "@/components/meetings/slot-proposal-form";
-import { slotIntervalFromCell } from "@/lib/services/week-calendar";
+import { slotIntervalFromCell, cellCoveredByPaintedSlot } from "@/lib/services/week-calendar";
 
 import type { CalendarSlotEvent } from "./meeting-week-grid";
 
@@ -30,13 +30,18 @@ export function MentorCalendar({
   const [pending, setPending] = useState<string[]>([]);
 
   function toggleCell(cell: Date) {
+    const covering = pending.find((iso) =>
+      cellCoveredByPaintedSlot(cell, iso, durationMinutes),
+    );
+
+    if (covering) {
+      setPending((current) => current.filter((value) => value !== covering));
+      return;
+    }
+
     const iso = slotIntervalFromCell(cell, durationMinutes).startsAt.toISOString();
     setPending((current) =>
-      current.includes(iso)
-        ? current.filter((value) => value !== iso)
-        : current.length >= 20
-          ? current
-          : [...current, iso],
+      current.length >= 20 ? current : [...current, iso],
     );
   }
 
@@ -48,7 +53,7 @@ export function MentorCalendar({
         <div>
           <h2 className="text-xl font-semibold">Choose times</h2>
           <p className="mt-1 text-sm text-zinc-600">
-            Paint available windows for {selectedMenteeName}. Existing scheduled
+            Paint {durationMinutes}-minute windows for {selectedMenteeName}. Existing scheduled
             meetings stay visible so you can avoid conflicts.
           </p>
         </div>
@@ -94,16 +99,24 @@ export function MentorCalendar({
 
       <MeetingWeekGrid
         emptyCell={(cell) => {
-          const isPending =
-            pendingSet.has(cell.toISOString()) ||
-            [...pendingSet].some(
-              (value) => new Date(value).getTime() === cell.getTime(),
-            );
+          const coveringStart = [...pendingSet].find((iso) =>
+            cellCoveredByPaintedSlot(cell, iso, durationMinutes),
+          );
+          const isPending = Boolean(coveringStart);
+          const isStart =
+            coveringStart !== undefined &&
+            new Date(coveringStart).getTime() === cell.getTime();
+
           return (
             <button
+              aria-label={
+                isStart
+                  ? `${durationMinutes}-minute slot starting ${cell.toLocaleTimeString()}`
+                  : undefined
+              }
               className={`h-7 w-full border border-transparent border-b-brand/20 text-left hover:ring-2 hover:ring-inset hover:ring-brand-deep ${
-                isPending ? "bg-sky-100" : ""
-              }`}
+                isPending ? "bg-sky-200" : ""
+              } ${isStart ? "rounded-t bg-sky-300" : ""}`}
               type="button"
               onClick={() => toggleCell(cell)}
             />

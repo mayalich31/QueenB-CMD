@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import {
   CALENDAR_CELL_MINUTES,
+  cellCoveredByPaintedSlot,
   cellOverlapsInterval,
   formatWeekParam,
   localDayCells,
@@ -62,5 +63,22 @@ describe("local week calendar helpers", () => {
     expect(
       cellOverlapsInterval(new Date(2026, 8, 8, 11, 0, 0), start, end),
     ).toBe(false);
+  });
+
+  it("covers every grid cell in a painted slot of the mentor duration", () => {
+    const start = new Date(2026, 8, 8, 10, 0, 0).toISOString();
+
+    expect(cellCoveredByPaintedSlot(new Date(2026, 8, 8, 10, 0, 0), start, 90)).toBe(
+      true,
+    );
+    expect(cellCoveredByPaintedSlot(new Date(2026, 8, 8, 10, 30, 0), start, 90)).toBe(
+      true,
+    );
+    expect(cellCoveredByPaintedSlot(new Date(2026, 8, 8, 11, 0, 0), start, 90)).toBe(
+      true,
+    );
+    expect(cellCoveredByPaintedSlot(new Date(2026, 8, 8, 11, 30, 0), start, 90)).toBe(
+      false,
+    );
   });
 });

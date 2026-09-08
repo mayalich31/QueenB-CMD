@@ -62,6 +62,16 @@ export function slotIntervalFromCell(cellStart: Date, durationMinutes: number) {
   };
 }
 
+export function cellCoveredByPaintedSlot(
+  cell: Date,
+  slotStartIso: string,
+  durationMinutes: number,
+) {
+  const start = new Date(slotStartIso);
+  const end = new Date(start.getTime() + durationMinutes * 60_000);
+  return cellOverlapsInterval(cell, start, end);
+}
+
 export function cellOverlapsInterval(
   cellStart: Date,
   intervalStart: Date,
